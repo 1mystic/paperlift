@@ -1,0 +1,2 @@
+# Optional OCR add-on for scanned / image-only PDFs:  ./paperlift.sh ocr
+rapidocr_onnxruntime>=1.3

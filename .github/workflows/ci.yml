@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.9", "3.12"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install
+        run: |
+          uv venv --python ${{ matrix.python }}
+          uv pip install -e ".[dev]"
+      - name: Test
+        run: uv run --no-sync pytest -q
+
+  launcher:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Self-contained launcher bootstraps uv + Python + deps inside the repo
+        run: |
+          ./paperlift.sh --version
+          test -x .runtime/venv/bin/python
+          python3 tests/fixtures.py /tmp/fx || .runtime/venv/bin/python tests/fixtures.py /tmp/fx
+          ./paperlift.sh convert /tmp/fx/*.pdf -o /tmp/out

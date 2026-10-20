@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paperlift"
+version = "0.2.0"
+description = "Lift clean, editable Markdown, Word and PDF out of flattened PDFs — with an expert mode for exported exam papers."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "AGPL-3.0-or-later"
+authors = [{ name = "Anshul" }]
+keywords = ["pdf", "markdown", "docx", "extraction", "exam", "question-paper", "ocr", "converter"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: Linux",
+  "Environment :: Web Environment",
+  "Topic :: Text Processing :: Markup :: Markdown",
+  "Topic :: Office/Business",
+]
+dependencies = [
+  "pymupdf>=1.24,<2.0",
+  "python-docx>=1.1",
+  "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+ocr = ["rapidocr_onnxruntime>=1.3"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+paperlift = "paperlift.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/YOUR-USERNAME/paperlift"
+Issues = "https://github.com/YOUR-USERNAME/paperlift/issues"
+
+[tool.setuptools]
+packages = ["paperlift"]
+
+[tool.setuptools.package-data]
+paperlift = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

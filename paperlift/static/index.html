@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paperlift</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#0b0b0c">
+<style>
+:root{
+  --bg:#0b0b0c; --panel:#141416; --panel2:#1b1b1e; --panel3:#222226; --line:#2a2a2e; --line2:#3a3a40;
+  --text:#ededee; --mute:#9a9aa1; --dim:#6b6b72; --accent:#ff5a4e; --accent-d:#5a2b28; --ok:#46c27a; --warn:#e9b44c;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+::selection{background:#ff5a4e55}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+svg.i.sm{width:14px;height:14px}
+.app{display:grid;grid-template-columns:262px 1fr;height:100vh}
+
+/* ---------- sidebar ---------- */
+aside{display:flex;flex-direction:column;padding:16px 10px;border-right:1px solid #161618}
+.brand{display:flex;align-items:center;gap:10px;margin:4px 8px 44px;text-decoration:none}
+.brand svg{width:34px;height:34px;transition:transform .35s var(--ease)}
+.brand:hover svg{transform:translateY(-2px) rotate(-4deg)}
+.brand b{font:600 19px var(--serif);letter-spacing:-.01em}
+.newbtn{display:flex;gap:10px;align-items:center;background:#fff;color:#111;border:0;border-radius:10px;padding:10px 14px;font-weight:600;width:100%;
+  transition:background .15s,transform .15s var(--ease),box-shadow .2s}
+.newbtn:hover{background:#ececec;box-shadow:0 6px 18px -8px #ffffff55;transform:translateY(-1px)}
+.newbtn:active{transform:translateY(0)}
+.nav{margin-top:12px;display:flex;flex-direction:column;gap:2px}
+.nav button,.foot button{display:flex;gap:12px;align-items:center;background:none;border:0;padding:9px 12px;border-radius:9px;text-align:left;width:100%;color:var(--text);font-weight:500;
+  transition:background .15s,color .15s}
+.nav button svg,.foot button svg{color:var(--mute);transition:color .15s,transform .2s var(--ease)}
+.nav button:hover,.foot button:hover{background:var(--panel)}
+.nav button:hover svg,.foot button:hover svg{color:var(--text);transform:translateX(1px)}
+.nav button.on{background:var(--panel2)}
+.nav button.on svg{color:var(--text)}
+.nav .count{margin-left:auto;font-size:11px;color:var(--mute);border:1px solid var(--line2);border-radius:5px;padding:0 6px;min-width:20px;text-align:center}
+.nav .count.live{color:var(--accent);border-color:var(--accent-d)}
+.foot{margin-top:auto;display:flex;flex-direction:column;gap:2px}
+.foot .ver{font-size:11px;color:var(--dim);padding:10px 12px 0;display:flex;gap:6px;align-items:center}
+.foot .ver .dotok{width:6px;height:6px;border-radius:50%;background:var(--ok)}
+
+/* ---------- main / home ---------- */
+main{overflow:auto;position:relative}
+.topnote{text-align:center;color:var(--mute);padding:28px 0 0;font-size:13.5px;display:flex;justify-content:center;gap:8px;align-items:center}
+.hero{max-width:780px;margin:0 auto;padding:96px 24px 60px}
+h1.big{font:400 58px/1.05 var(--serif);letter-spacing:-.02em;text-align:center;margin:0}
+.sub{color:var(--mute);text-align:center;font-size:16px;margin:16px auto 40px;max-width:470px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:border-color .2s,box-shadow .25s}
+.card:hover{border-color:var(--line2)}
+.card.drag{border-color:var(--accent);box-shadow:0 0 0 4px #ff5a4e1f}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 16px 10px;gap:12px}
+.card-h b{font-size:15px}
+.card-h small{display:block;color:var(--mute);font-size:11.5px;margin-top:2px}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;flex:none}
+.seg button{background:none;border:0;border-radius:7px;padding:5px 10px;font-size:12.5px;color:var(--mute);display:flex;gap:6px;align-items:center;transition:background .15s,color .15s}
+.seg button:hover{color:var(--text);background:var(--panel2)}
+.seg button.on{background:var(--panel3);color:var(--text)}
+.drop{background:var(--panel2);border-top:1px solid var(--line);border-radius:16px;padding:16px 14px 12px}
+.dz{min-height:58px;color:var(--dim);font-size:15px;padding:4px 6px;border-radius:10px;transition:background .15s,color .15s;cursor:pointer;display:flex;align-items:flex-start;gap:10px}
+.dz:hover{color:var(--mute);background:#ffffff05}
+.dz .files{display:flex;flex-wrap:wrap;gap:6px}
+.fchip{background:var(--panel3);border:1px solid var(--line);border-radius:8px;padding:3px 4px 3px 8px;font-size:12px;color:var(--text);display:flex;gap:6px;align-items:center;transition:border-color .15s}
+.fchip:hover{border-color:var(--line2)}
+.fchip .x{background:none;border:0;padding:2px;border-radius:5px;color:var(--mute);display:grid;place-items:center;transition:background .15s,color .15s}
+.fchip .x:hover{background:var(--line);color:var(--text)}
+.fchip small{color:var(--dim)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;gap:7px;align-items:center;background:none;border:1px solid transparent;color:var(--mute);border-radius:999px;padding:7px 12px;font-size:13px;
+  transition:background .15s,border-color .15s,color .15s}
+.chip:hover{color:var(--text);background:#ffffff08;border-color:var(--line)}
+.chip.on{background:var(--panel3);border-color:var(--line2);color:var(--text);font-weight:500}
+.chip .ck{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--dim);display:grid;place-items:center;transition:.15s}
+.chip.on .ck{background:var(--accent);border-color:var(--accent)}
+.chip .ck svg{width:10px;height:10px;stroke:#fff;stroke-width:3;opacity:0;transition:opacity .15s}
+.chip.on .ck svg{opacity:1}
+.iconbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line2);background:var(--panel3);display:grid;place-items:center;color:var(--mute);transition:color .15s,border-color .15s,background .15s}
+.iconbtn:hover{color:var(--text);border-color:#55555c;background:#2a2a2f}
+.go{margin-left:auto;width:38px;height:38px;border-radius:50%;border:0;background:#3a3a40;color:#8d8d94;display:grid;place-items:center;transition:background .2s,color .2s,transform .2s var(--ease)}
+.go.ready{background:#fff;color:#111}
+.go.ready:hover{transform:translateY(-2px);box-shadow:0 8px 20px -8px #fff8}
+.go svg{transition:transform .2s var(--ease)}
+.go.ready:hover svg{transform:translateY(-1px)}
+.hint{color:var(--dim);font-size:11.5px;margin:10px 4px 0;display:flex;gap:6px;align-items:center}
+.tabs{display:flex;gap:6px;margin:44px 0 14px;flex-wrap:wrap}
+.tab{background:none;border:0;padding:9px 16px;border-radius:10px;font-weight:600;color:var(--mute);transition:background .15s,color .15s}
+.tab:hover{color:var(--text);background:var(--panel)}
+.tab.on{background:var(--panel2);color:var(--text)}
+.tab .n{color:var(--dim);font-weight:400;margin-left:4px}
+.list{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+.item{display:flex;gap:10px;align-items:flex-start;padding:10px 10px;border-radius:10px;min-width:0;position:relative;border:1px solid transparent;
+  transition:background .15s,border-color .15s;cursor:pointer}
+.item:hover{background:var(--panel);border-color:var(--line)}
+.item .arr{color:var(--dim);margin-top:2px;transition:color .15s,transform .2s var(--ease)}
+.item:hover .arr{color:var(--accent);transform:translateX(2px)}
+.item .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.item .meta{color:var(--mute);font-size:12px}
+.item .acts{position:absolute;right:8px;top:8px;display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.item:hover .acts{opacity:1}
+.mini{background:var(--panel3);border:1px solid var(--line);border-radius:7px;width:26px;height:26px;display:grid;place-items:center;color:var(--mute);transition:.15s}
+.mini:hover{color:var(--text);border-color:var(--line2)}
+.mini.danger:hover{color:#ff8a80;border-color:var(--accent-d)}
+.badge{font-size:11px;border-radius:5px;padding:1px 6px;border:1px solid var(--line2);color:var(--mute);white-space:nowrap;display:inline-flex;gap:4px;align-items:center}
+.badge.done{color:var(--ok);border-color:#2b5a3d}
+.badge.processing,.badge.queued{color:var(--accent);border-color:var(--accent-d)}
+.badge.processing::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite}
+.badge.error{color:#ff8a80;border-color:var(--accent-d)}
+.badge.warn{color:var(--warn);border-color:#5a4a28}
+.badge.kind{color:var(--mute)}
+@keyframes pulse{50%{opacity:.25}}
+.bar{height:3px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px}
+.bar>div{height:100%;background:var(--accent);transition:width .3s var(--ease)}
+.empty{color:var(--dim);padding:22px 10px;grid-column:1/-1;display:flex;gap:10px;align-items:center}
+.progress{height:2px;background:var(--line);border-radius:2px;overflow:hidden;margin:12px 4px 0;display:none}
+.progress>div{height:100%;background:var(--accent);width:0;transition:width .2s}
+
+/* ---------- detail ---------- */
+.detail{display:grid;grid-template-columns:1fr 340px;height:100vh}
+.prevwrap{overflow:hidden;display:flex;flex-direction:column;border-right:1px solid #161618}
+.dhead{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #161618}
+.dhead .t{font:400 22px var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.back{background:none;border:1px solid var(--line2);border-radius:8px;padding:5px 10px 5px 7px;color:var(--mute);display:flex;gap:4px;align-items:center;transition:.15s;flex:none}
+.back:hover{color:var(--text);border-color:#55555c;background:var(--panel)}
+.back:hover svg{transform:translateX(-2px)}
+.back svg{transition:transform .2s var(--ease)}
+.subtabs{display:flex;gap:4px;padding:10px 20px 0}
+iframe{flex:1;border:0;background:#fff;margin:12px 20px 20px;border-radius:12px;width:calc(100% - 40px)}
+pre.mdsrc{flex:1;margin:12px 20px 20px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;white-space:pre-wrap;font:12.5px/1.55 ui-monospace,Menlo,monospace;color:#cfcfd3}
+.insp{overflow:auto;padding:18px 18px 40px}
+.insp h3{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:22px 0 10px;font-weight:600}
+.insp h3:first-child{margin-top:4px}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:9px;min-width:0}
+.field label{font-size:12px;color:var(--mute)}
+.field input,.field select{width:100%;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;outline:none;transition:border-color .15s,background .15s}
+.field input:hover{border-color:var(--line2)}
+.field input:focus{border-color:#66666e;background:var(--panel2)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tog{display:flex;justify-content:space-between;align-items:center;padding:7px 8px;margin:0 -8px;border-radius:8px;cursor:pointer;transition:background .15s;gap:12px}
+.tog:hover{background:var(--panel)}
+.tog small{display:block;color:var(--dim);font-size:11.5px}
+.sw{width:32px;height:18px;border-radius:9px;background:#333;position:relative;flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#bbb;top:2px;left:2px;transition:left .2s var(--ease),background .2s}
+.tog.on .sw{background:var(--accent)}.tog.on .sw::after{left:16px;background:#fff}
+.dl{display:flex;flex-direction:column;gap:6px}
+.dl a{display:flex;align-items:center;gap:10px;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;transition:background .15s,border-color .15s,transform .15s var(--ease)}
+.dl a svg{color:var(--mute);transition:color .15s,transform .2s var(--ease)}
+.dl a:hover{border-color:var(--line2);background:var(--panel2);transform:translateX(2px)}
+.dl a:hover svg{color:var(--accent);transform:translateY(1px)}
+.dl a span{margin-left:auto;color:var(--dim);font-size:12px}
+.primary{width:100%;background:#fff;color:#111;border:0;border-radius:10px;padding:10px;font-weight:600;margin-top:14px;display:flex;gap:8px;justify-content:center;align-items:center;transition:background .15s,transform .15s var(--ease)}
+.primary:hover{background:#ececec;transform:translateY(-1px)}
+.ghost{width:100%;background:none;color:var(--mute);border:1px solid var(--line2);border-radius:10px;padding:9px;margin-top:8px;display:flex;gap:8px;justify-content:center;align-items:center;transition:.15s}
+.ghost:hover{color:var(--text);border-color:#55555c;background:var(--panel)}
+.ghost.danger:hover{color:#ff8a80;border-color:var(--accent-d);background:#1f1413}
+.warnbox{background:#211d12;border:1px solid #4a3e1c;color:#e9cf8c;border-radius:10px;padding:10px 12px;font-size:12.5px;display:flex;gap:8px}
+.warnbox svg{flex:none;margin-top:1px}
+.stats{display:flex;flex-wrap:wrap;gap:6px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;color:var(--mute)}
+.stat b{color:var(--text);font-weight:600;margin-right:3px}
+.secrow{display:flex;gap:8px;align-items:center;padding:6px 8px;margin:0 -8px;border-radius:8px;cursor:pointer;transition:background .15s}
+.secrow:hover{background:var(--panel)}
+.secrow small{color:var(--mute);margin-left:auto}
+.secrow input{accent-color:var(--accent)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,8px);background:#fff;color:#111;border-radius:10px;padding:9px 14px;font-weight:500;opacity:0;transition:.25s var(--ease);pointer-events:none;z-index:9;display:flex;gap:8px;align-items:center;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:#2a1513;color:#ffb3ab;border:1px solid var(--accent-d)}
+.settings{max-width:640px;margin:0 auto;padding:80px 24px}
+.settings h1{font:400 40px var(--serif);margin:0 0 8px}
+.settings p{color:var(--mute)}
+.settings .card{padding:8px 16px;margin:18px 0}
+.settings h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:30px 0 0}
+code{background:var(--panel2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;font-size:12.5px}
+pre.cli{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;font:12.5px/1.7 ui-monospace,Menlo,monospace;overflow:auto;color:#d7d7db}
+.okline{display:flex;gap:8px;align-items:center;color:var(--mute)}
+.okline .g{color:var(--ok)}
+@media (max-width:900px){.app{grid-template-columns:1fr}aside{display:none}.detail{grid-template-columns:1fr;height:auto}.list{grid-template-columns:1fr}h1.big{font-size:40px}.hero{padding-top:50px}iframe{min-height:70vh}.card-h{flex-direction:column}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-library" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M2 20h20"/></symbol>
+    <symbol id="i-queue" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18.5" cy="16.5" r="2.5"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 4v7a4 4 0 0 0 4 4h10"/><path d="m15 11 4 4-4 4"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+    <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><path d="m21 11-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></symbol>
+    <symbol id="i-exam" viewBox="0 0 24 24"><path d="M9 4H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/><rect x="9" y="2.5" width="6" height="3.5" rx="1"/><path d="m9 13 2 2 4-4"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 17 6-5-6-5M12 19h8"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 15-6.7L21 13"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <aside>
+    <a class="brand" href="#" onclick="go('home');return false" aria-label="Paperlift home">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="14" y="20" width="26" height="32" rx="5" fill="none" stroke="#8a8a92" stroke-width="3.5"/><rect x="23" y="11" width="27" height="33" rx="5" fill="#fff"/><path d="M36.5 35V21.5M31 27l5.5-5.5L42 27" fill="none" stroke="#ff5a4e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>Paperlift</b>
+    </a>
+    <button class="newbtn" onclick="go('home');pick()"><svg class="i"><use href="#i-plus"/></svg>New extraction</button>
+    <nav class="nav">
+      <button id="nav-home" onclick="go('home');setTab('all')"><svg class="i"><use href="#i-library"/></svg>Library<span class="count" id="cnt">0</span></button>
+      <button id="nav-queue" onclick="go('home');setTab('queue')"><svg class="i"><use href="#i-queue"/></svg>Queue<span class="count" id="qcnt">0</span></button>
+      <button id="nav-settings" onclick="go('settings')"><svg class="i"><use href="#i-gear"/></svg>Settings &amp; limits</button>
+    </nav>
+    <div class="foot">
+      <button onclick="openDir('inbox')"><svg class="i"><use href="#i-inbox"/></svg>Open inbox folder</button>
+      <button onclick="openDir('output')"><svg class="i"><use href="#i-folder"/></svg>Open output folder</button>
+      <button onclick="rescan()"><svg class="i"><use href="#i-refresh"/></svg>Rescan inbox</button>
+      <div class="ver"><span class="dotok"></span><span id="ver">Running locally</span></div>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<input type="file" id="picker" accept="application/pdf,.pdf" multiple hidden>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const S = {files:[], settings:{limits:{}}, view:'home', tab:'all', stem:null, pending:[], uploading:false, sub:'preview', pendingN:0, ocr:false};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ic = (n, cls='') => `<svg class="i ${cls}"><use href="#i-${n}"/></svg>`;
+const FMT = [['md','Markdown'],['docx','Word'],['pdf','PDF'],['json','JSON']];
+const MODES = [['auto','Auto-detect','sparkle'],['qpaper','Exam paper','exam'],['general','Document','doc']];
+const fmtSize = b => b > 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.max(1, Math.round(b/1024))+' KB';
+
+function toast(t, err){ const e=$('#toast'); e.innerHTML=(err?ic('alert','sm'):ic('check','sm'))+'<span>'+esc(t)+'</span>'; e.classList.toggle('err',!!err); e.classList.add('show'); clearTimeout(e._t); e._t=setTimeout(()=>e.classList.remove('show'), err?4200:2400) }
+async function api(path, body){
+  const r = await fetch(path, body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  return r.json();
+}
+async function refresh(){
+  let d; try{ d = await api('/api/state') }catch(e){ $('#ver').textContent='Server stopped'; return }
+  S.files=d.files; S.settings=d.settings; S.pendingN=d.pending; S.ocr=d.ocr;
+  $('#ver').textContent = `v${d.version} · running locally`;
+  $('#cnt').textContent = S.files.length;
+  const q=$('#qcnt'); q.textContent=d.pending; q.classList.toggle('live', d.pending>0);
+  render();
+}
+function go(v, stem){ S.view=v; if(stem!==undefined) S.stem=stem; S.sub='preview'; S.outIdx=0; render(true) }
+function setTab(t){ S.tab=t; render(true) }
+const L = () => S.settings.limits || {max_files:10,max_mb:50,max_pages:50};
+
+/* ---------------- home ---------------- */
+function homeView(){
+  const fm = S.settings.formats || ['md','docx','pdf','json'];
+  const mode = S.settings.mode || 'auto';
+  const ck = `<span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg></span>`;
+  const chips = FMT.map(([k,l])=>`<button class="chip ${fm.includes(k)?'on':''}" onclick="toggleFmt('${k}')" aria-pressed="${fm.includes(k)}">${ck}${l}</button>`).join('');
+  const seg = MODES.map(([k,l,i])=>`<button class="${mode===k?'on':''}" onclick="saveSettings({mode:'${k}'})" title="${k==='auto'?'Pick the best profile per file':k==='qpaper'?'Exported exam papers: questions, options, answer key':'Any PDF: headings, lists, tables, figures'}">${ic(i,'sm')}${l}</button>`).join('');
+  const files = S.pending.map((f,i)=>`<span class="fchip">${ic('doc','sm')}${esc(f.name)} <small>${fmtSize(f.size)}</small><button class="x" title="Remove" onclick="event.stopPropagation();S.pending.splice(${i},1);render(true)"><svg class="i sm"><use href="#i-x"/></svg></button></span>`).join('');
+  const isQ = f => ['queued','processing'].includes(f.status);
+  const isA = f => f.status==='error'||f.status==='new'||(f.warnings&&f.warnings.length);
+  const counts = {all:S.files.length, queue:S.files.filter(isQ).length, done:S.files.filter(f=>f.status==='done').length, review:S.files.filter(isA).length};
+  const tabs = [['all','All'],['queue','Queue'],['done','Done'],['review','Needs attention']]
+    .map(([k,l])=>`<button class="tab ${S.tab===k?'on':''}" onclick="setTab('${k}')">${l}${counts[k]?`<span class="n">${counts[k]}</span>`:''}</button>`).join('');
+  const list = S.files.filter(f => S.tab==='all' || (S.tab==='queue'&&isQ(f)) || (S.tab==='done'&&f.status==='done') || (S.tab==='review'&&isA(f)));
+  const rows = list.length ? list.map(itemRow).join('') : `<div class="empty">${ic('inbox')}${S.tab==='all'?'No files yet. Drop PDFs above, or copy them into the inbox folder and choose “Rescan inbox”.':'Nothing here right now.'}</div>`;
+  const l = L();
+  const lim = [l.max_files?`up to ${l.max_files} files per batch`:'', l.max_mb?`${l.max_mb} MB`:'', l.max_pages?`${l.max_pages} pages per file`:''].filter(Boolean).join(' · ');
+  return `
+  <div class="topnote">${ic('lock','sm')} Everything runs on this computer. Files never leave it.</div>
+  <div class="hero">
+    <h1 class="big">Lift the text off the page</h1>
+    <p class="sub">Turn flattened PDFs into clean, editable Markdown, Word and PDF, with figures intact. Exported exam papers get their answers collected into a key.</p>
+    <div class="card" id="card">
+      <div class="card-h">
+        <div><b>Drop your PDFs</b><small>Extracted one at a time, in order, to stay light on memory.</small></div>
+        <div class="seg" role="group" aria-label="Extraction profile">${seg}</div>
+      </div>
+      <div class="drop">
+        <div class="dz" onclick="pick()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')pick()">${files ? `<div class="files">${files}</div>` : 'Drop PDFs here, or click to browse'}</div>
+        <div class="row" style="margin-top:8px">
+          <button class="iconbtn" title="Add files" onclick="pick()">${ic('clip')}</button>
+          ${chips}
+          <button class="go ${S.pending.length?'ready':''}" title="${S.pending.length?'Extract':'Add files first'}" onclick="startUpload()">${ic('up')}</button>
+        </div>
+        <div class="progress" id="prog"><div></div></div>
+      </div>
+    </div>
+    <div class="hint">${ic('shield','sm')} Limits: ${lim || 'none'} <a href="#" onclick="go('settings');return false" style="color:var(--mute)">change</a></div>
+    <div class="tabs">${tabs}</div>
+    <div class="list">${rows}</div>
+  </div>`;
+}
+function itemRow(f){
+  const warn = f.warnings && f.warnings.length;
+  const kind = f.profile ? `<span class="badge kind">${f.profile==='qpaper'?'Exam paper':'Document'}</span>` : '';
+  const badge = f.status==='done' ? (warn?`<span class="badge warn">${warn} warning${warn>1?'s':''}</span>`:`<span class="badge done">Ready</span>`)
+     : `<span class="badge ${f.status}">${({new:'Not extracted',queued:'Queued',processing:'Extracting',error:'Failed'})[f.status]||f.status}</span>`;
+  let sub;
+  if(f.status==='processing' && f.progress && f.progress[1]) sub = `Page ${f.progress[0]} of ${f.progress[1]}`;
+  else if(f.outputs && f.status!=='error'){
+    const o=f.outputs; const qn=o.reduce((a,x)=>a+(x.questions||0),0);
+    const st=o[0].stats; const blocks = st ? Object.values(st).reduce((a,b)=>a+b,0) : 0;
+    sub = esc(o.map(x=>x.title).join(' + ')) + ' · ' + (f.profile==='qpaper' ? `${qn} questions` : `${blocks} blocks`);
+  } else sub = f.error ? esc(f.error) : fmtSize(f.size);
+  const bar = f.status==='processing' && f.progress && f.progress[1] ? `<div class="bar"><div style="width:${Math.round(f.progress[0]/f.progress[1]*100)}%"></div></div>` : '';
+  const click = f.status==='done' ? `go('paper','${esc(f.stem)}')` : (f.status==='new'||f.status==='error') ? `convert(['${esc(f.name)}'])` : '';
+  const acts = f.status==='queued' ? `<button class="mini" title="Cancel" onclick="event.stopPropagation();cancelJob('${esc(f.name)}')">${ic('stop','sm')}</button>`
+    : f.status==='processing' ? '' : `${f.status!=='done'?`<button class="mini" title="Extract" onclick="event.stopPropagation();convert(['${esc(f.name)}'])">${ic('play','sm')}</button>`:''}<button class="mini danger" title="Remove" onclick="event.stopPropagation();del('${esc(f.name)}')">${ic('trash','sm')}</button>`;
+  return `<div class="item" onclick="${click}" title="${f.status==='done'?'Open':f.status==='new'||f.status==='error'?'Extract':''}">
+    ${ic('arrow','arr')}<div style="min-width:0;flex:1;padding-right:56px"><div class="row" style="flex-wrap:nowrap;gap:6px"><span class="nm">${esc(f.name)}</span>${badge}${kind}</div><div class="meta nm">${sub}</div>${bar}</div><div class="acts">${acts}</div></div>`;
+}
+function toggleFmt(k){ let f=[...(S.settings.formats||[])]; f=f.includes(k)?f.filter(x=>x!==k):[...f,k]; saveSettings({formats:f}) }
+function toggleSet(k){ saveSettings({[k]: S.settings[k]===false}) }
+async function saveSettings(o){ S.settings = await api('/api/settings', o); render(true) }
+function pick(){ $('#picker').click() }
+$('#picker').addEventListener('change', e => { addFiles(e.target.files); e.target.value='' });
+function addFiles(list){
+  const l = L(); const rejected = [];
+  for(const f of list){
+    if(!f.name.toLowerCase().endsWith('.pdf')){ rejected.push(`${f.name} is not a PDF`); continue }
+    if(l.max_mb && f.size > l.max_mb*1048576){ rejected.push(`${f.name} is ${fmtSize(f.size)} (limit ${l.max_mb} MB)`); continue }
+    if(S.pending.some(p=>p.name===f.name)) continue;
+    if(l.max_files && S.pending.length >= l.max_files){ rejected.push(`Batch limit is ${l.max_files} files`); break }
+    S.pending.push(f);
+  }
+  if(rejected.length) toast(rejected[0] + (rejected.length>1?` (+${rejected.length-1} more)`:''), true);
+  if(S.view!=='home') go('home'); else render(true);
+}
+let dragDepth = 0;
+document.addEventListener('dragenter', e => { e.preventDefault(); dragDepth++; const c=$('#card'); c&&c.classList.add('drag') });
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('dragleave', () => { if(--dragDepth<=0){ dragDepth=0; const c=$('#card'); c&&c.classList.remove('drag') } });
+document.addEventListener('drop', e => { e.preventDefault(); dragDepth=0; const c=$('#card'); c&&c.classList.remove('drag'); addFiles(e.dataTransfer.files) });
+
+async function startUpload(){
+  if(!S.pending.length || S.uploading) return pick();
+  S.uploading = true;
+  const files=[...S.pending], names=[], errors=[];
+  const prog=$('#prog'); prog.style.display='block';
+  for(let i=0;i<files.length;i++){             // sequential: one file in flight at a time
+    try{
+      const r = await fetch('/api/upload?name='+encodeURIComponent(files[i].name), {method:'POST', body:files[i]});
+      const j = await r.json();
+      j.ok ? names.push(j.name) : errors.push(j.error||'Upload failed');
+    }catch(e){ errors.push(files[i].name+': upload failed') }
+    prog.firstElementChild.style.width = ((i+1)/files.length*100)+'%';
+  }
+  S.pending=[]; S.uploading=false;
+  if(errors.length) toast(errors[0] + (errors.length>1?` (+${errors.length-1} more)`:''), true);
+  if(names.length){ await convert(names); if(!errors.length) toast(`${names.length} file${names.length>1?'s':''} queued`) }
+  S.tab='all'; refresh();
+}
+async function convert(names, perFile){
+  const r = await api('/api/convert', {names, per_file: perFile});
+  if(r.message) toast(r.message, true);
+  refresh(); poll();
+}
+async function cancelJob(name){ await api('/api/cancel',{name}); refresh() }
+async function openDir(which, stem){ const r = await api('/api/open', {which, stem}); if(!r.ok) toast('Folder: '+r.path) }
+async function rescan(){ await refresh(); const n=S.files.filter(f=>f.status==='new'); if(n.length){ convert(n.map(f=>f.name)); toast(`${Math.min(n.length, L().max_files||n.length)} new file(s) queued`) } else toast('Inbox scanned, nothing new') }
+
+/* ---------------- file detail ---------------- */
+function detailView(){
+  const f = S.files.find(x=>x.stem===S.stem);
+  if(!f || !f.outputs) return `<div class="hero"><p class="sub">This file is not available.</p></div>`;
+  const outs=f.outputs; S.outIdx=Math.min(S.outIdx||0, outs.length-1);
+  const o=outs[S.outIdx], g=f.guess||{}, op=f.options||{}, isQ=f.profile==='qpaper';
+  const val = k => esc(op[k] ?? ''), ph = k => esc(g[k] ?? '');
+  const parts = outs.length>1 ? outs.map((x,i)=>`<button class="chip ${i===S.outIdx?'on':''}" onclick="S.outIdx=${i};render(true)">${esc(x.slug.split('_').pop())}</button>`).join('') : '';
+  const vt = [['preview','Preview','eye'],['markdown','Markdown source','code']].map(([k,l,i])=>`<button class="chip ${S.sub===k?'on':''}" onclick="S.sub='${k}';render(true)">${ic(i,'sm')}${l}</button>`).join('');
+  const labels = {md_zip:['Markdown + images','.zip'], md:['Markdown only','.md'], docx:['Word document','.docx'], pdf:['PDF','.pdf'], json:['Structured JSON','.json']};
+  const dls = Object.entries(labels).filter(([k])=>o.files[k]).map(([k,[l,ext]])=>`<a href="${o.files[k]}?dl=1">${ic('dl')}${l}<span>${ext}</span></a>`).join('')
+     + `<a href="/api/zip?stem=${encodeURIComponent(f.stem)}">${ic('dl')}Everything<span>.zip</span></a>`;
+  const warns = (f.warnings||[]).length ? `<h3>Check these</h3><div class="warnbox">${ic('alert','sm')}<div>${f.warnings.map(esc).join('<br>')}</div></div>` : '';
+  const tg = (k,l,d,def=true) => { const on = op[k]===undefined ? def : !!op[k]; return `<div class="tog ${on?'on':''}" data-k="${k}" onclick="this.classList.toggle('on')" role="switch" aria-checked="${on}"><span>${l}${d?`<small>${d}</small>`:''}</span><span class="sw"></span></div>` };
+  let panel;
+  if(isQ){
+    const secs=(f.sections||[]).map(s=>{
+      const chosen=(op.sections&&op.sections!=='auto')?String(op.sections).split(',').includes(String(s.index)):(s.subject?true:!s.partial);
+      return `<label class="secrow"><input type="checkbox" class="secck" value="${s.index}" ${chosen?'checked':''}> ${esc(s.name)} <small>${s.questions} q</small></label>`}).join('');
+    panel = `<h3>Title</h3>
+      <div class="field"><label>Subject</label><input id="f-subject" value="${val('subject')}" placeholder="${esc((o.title||'').split(' (')[0].split(' · ')[0])}"></div>
+      <div class="grid2">
+        <div class="field"><label>Code</label><input id="f-code" value="${val('code')}" placeholder="${ph('code')}"></div>
+        <div class="field"><label>Year</label><input id="f-year" value="${val('year')}" placeholder="${ph('year')}"></div>
+        <div class="field"><label>Term</label><input id="f-term" value="${val('term')}" placeholder="${ph('term')||'T1'}"></div>
+        <div class="field"><label>Exam</label><input id="f-exam" value="${val('exam')}" placeholder="${ph('exam')||'Quiz 1'}"></div>
+      </div>
+      <div class="field"><label>Full title override</label><input id="f-title" value="${val('title')}" placeholder="Leave empty to build from the fields"></div>
+      <h3>Layout</h3>${tg('marks','Show marks')}${tg('qtype_hint','Question-type hints')}${tg('renumber','Renumber from 1')}${tg('split','One file per subject')}
+      <h3>Sections</h3>${secs||'<div class="meta">None</div>'}`;
+  } else {
+    const st=o.stats||{}; const names={heading:['heading','headings'],para:['paragraph','paragraphs'],item:['list item','list items'],table:['table','tables'],figure:['figure','figures'],code:['code block','code blocks']};
+    const stats=Object.entries(names).filter(([k])=>st[k]).map(([k,l])=>`<span class="stat"><b>${st[k]}</b>${l[st[k]===1?0:1]}</span>`).join('');
+    panel = `<h3>Contents</h3><div class="stats">${stats||'<span class="stat">Empty</span>'}${(f.ocr_pages||[]).length?`<span class="stat"><b>${f.ocr_pages.length}</b>OCR pages</span>`:''}</div>
+      <h3>Title</h3><div class="field"><input id="f-title" value="${val('title')}" placeholder="${esc(o.title)}"></div>
+      <h3>Extraction</h3>${tg('tables','Detect tables')}${tg('vector_figures','Keep vector drawings','Charts and diagrams become images')}${tg('page_markers','Mark page breaks','',false)}
+      ${tg('ocr_on','Read scanned pages (OCR)', S.ocr?'Installed':'Not installed: run ./paperlift.sh ocr', op.ocr!=='off')}`;
+  }
+  return `<div class="detail">
+    <div class="prevwrap">
+      <div class="dhead"><button class="back" onclick="go('home')">${ic('back','sm')}Library</button><div class="t">${esc(o.title||f.stem)}</div></div>
+      <div class="subtabs row">${vt}${parts?'<span style="width:10px"></span>'+parts:''}</div>
+      ${S.sub==='preview' && o.files.html ? `<iframe title="Preview" src="${o.files.html}?t=${Date.now()}"></iframe>` : `<pre class="mdsrc" id="mdsrc">Loading…</pre>`}
+    </div>
+    <div class="insp">
+      <h3>Download</h3><div class="dl">${dls}</div>
+      ${warns}
+      <h3>Extract as</h3><div class="seg" style="width:fit-content">${MODES.slice(1).map(([k,l,i])=>`<button class="${f.profile===k?'on':''}" data-mode="${k}" onclick="document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b===this))">${ic(i,'sm')}${l}</button>`).join('')}</div>
+      ${panel}
+      <button class="primary" onclick="reextract('${esc(f.name)}')">${ic('redo','sm')}Apply and re-extract</button>
+      <button class="ghost" onclick="openDir('output','${esc(f.stem)}')">${ic('folder','sm')}Show in folder</button>
+      <button class="ghost danger" onclick="del('${esc(f.name)}')">${ic('trash','sm')}Remove file</button>
+    </div></div>`;
+}
+async function loadMd(){
+  const f=S.files.find(x=>x.stem===S.stem); const o=(f.outputs||[])[S.outIdx||0];
+  const el=$('#mdsrc'); if(!el||!o) return;
+  el.textContent = o.files.md ? await (await fetch(o.files.md)).text() : 'Markdown is turned off in the format chips.';
+}
+function reextract(name){
+  const opts = {};
+  ['subject','code','year','term','exam','title'].forEach(k=>{ const e=$('#f-'+k); if(e) opts[k]=e.value.trim() });
+  document.querySelectorAll('.tog[data-k]').forEach(t=> opts[t.dataset.k]=t.classList.contains('on'));
+  if('ocr_on' in opts){ opts.ocr = opts.ocr_on ? 'auto' : 'off'; delete opts.ocr_on }
+  const ck=[...document.querySelectorAll('.secck')];
+  if(ck.length) opts.sections = ck.filter(c=>c.checked).map(c=>c.value).join(',') || 'auto';
+  const m=document.querySelector('[data-mode].on'); if(m) opts.mode=m.dataset.mode;
+  convert([name], {[name]: opts}); toast('Re-extracting');
+  const wait=setInterval(()=>{ const f=S.files.find(x=>x.name===name); if(f&&['done','error'].includes(f.status)&&!S.pendingN){ clearInterval(wait); render(true); f.status==='done'?toast('Updated'):toast(f.error||'Failed',true) } }, 700);
+}
+async function del(name){ if(!confirm('Remove '+name+' and its outputs?')) return; const r=await api('/api/delete',{name}); if(r.error) return toast(r.error,true); if(S.view==='paper') go('home'); refresh() }
+
+/* ---------------- settings ---------------- */
+function settingsView(){
+  const s=S.settings, l=L();
+  const tg=(k,t,d)=>`<div class="tog ${s[k]===false?'':'on'}" onclick="toggleSet('${k}')"><span>${t}${d?`<small>${d}</small>`:''}</span><span class="sw"></span></div>`;
+  return `<div class="settings">
+    <h1>Settings</h1>
+    <p>Defaults for new extractions. Formats and the profile are chosen on the Library page.</p>
+    <h2>Limits</h2>
+    <div class="card">
+      <p style="margin:8px 0 12px;font-size:13px">Keeps batches manageable on slower machines. Use 0 for no limit.</p>
+      <div class="grid3">
+        <div class="field"><label>Files per batch</label><input type="number" min="0" id="l-max_files" value="${l.max_files}"></div>
+        <div class="field"><label>MB per file</label><input type="number" min="0" id="l-max_mb" value="${l.max_mb}"></div>
+        <div class="field"><label>Pages per file</label><input type="number" min="0" id="l-max_pages" value="${l.max_pages}"></div>
+      </div>
+      <button class="ghost" style="width:auto;padding:7px 14px;margin:2px 0 10px" onclick="saveLimits()">${ic('check','sm')}Save limits</button>
+    </div>
+    <h2>Exam papers</h2>
+    <div class="card">${tg('split','One output per subject section')}${tg('renumber','Renumber questions from 1')}${tg('marks','Show marks next to each question')}${tg('qtype_hint','Show question-type hints','“select all that apply”, “numeric answer”')}</div>
+    <h2>Documents</h2>
+    <div class="card">${tg('tables','Detect tables')}${tg('vector_figures','Keep vector drawings as figures')}
+      <div class="tog ${s.page_markers?'on':''}" onclick="saveSettings({page_markers:!S.settings.page_markers})"><span>Mark page breaks</span><span class="sw"></span></div>
+      <div class="okline" style="padding:8px 0">${S.ocr?`<svg class="i sm g"><use href="#i-check"/></svg>OCR for scanned pages is installed`:`${ic('alert','sm')}OCR is not installed. Run <code>./paperlift.sh ocr</code> to read scanned pages.`}</div>
+    </div>
+    <h2>Command line</h2>
+    <pre class="cli">./paperlift.sh convert ~/Downloads/*.pdf
+./paperlift.sh convert inbox/ -o ~/Desktop/clean --formats md,docx
+./paperlift.sh convert notes.pdf --mode general --page-markers
+./paperlift.sh convert paper.pdf --mode qpaper --code CS3004 --exam "Quiz 2"
+./paperlift.sh convert big.pdf --max-pages 200
+./paperlift.sh detect *.pdf</pre>
+    <p>You can also copy PDFs into the <code>inbox</code> folder and choose <b>Rescan inbox</b>.</p>
+  </div>`;
+}
+async function saveLimits(){
+  const lim={}; ['max_files','max_mb','max_pages'].forEach(k=>lim[k]=parseInt($('#l-'+k).value||'0',10));
+  await saveSettings({limits:lim}); toast('Limits saved');
+}
+
+/* ---------------- render ---------------- */
+let lastKey='';
+function render(force){
+  ['home','settings'].forEach(v=>$('#nav-'+v).classList.toggle('on', S.view===v && !(v==='home'&&S.tab==='queue')));
+  $('#nav-queue').classList.toggle('on', S.view==='home' && S.tab==='queue');
+  if(S.view==='settings' && !force && document.activeElement && document.activeElement.tagName==='INPUT') return;
+  const html = S.view==='paper' ? detailView() : S.view==='settings' ? settingsView() : homeView();
+  const key = S.view==='paper' ? JSON.stringify([S.stem,S.outIdx,S.sub,(S.files.find(x=>x.stem===S.stem)||{}).status]) : html;
+  if(!force && key===lastKey) return;
+  lastKey=key;
+  $('#main').innerHTML=html;
+  if(S.view==='paper' && S.sub==='markdown') loadMd();
+}
+let pollT=null;
+function poll(){ clearInterval(pollT); pollT=setInterval(async()=>{ await refresh(); if(!S.pendingN){ clearInterval(pollT); pollT=null; refresh() } }, 800) }
+refresh().then(()=>{ if(S.pendingN) poll() });
+</script>
+</body>
+</html>
