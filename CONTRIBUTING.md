@@ -5,7 +5,7 @@ Thanks for helping! Bug reports with a sample PDF are the most valuable contribu
 ## Set up
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/paperlift && cd paperlift
+git clone https://github.com/1mystic/paperlift && cd paperlift
 ./paperlift.sh --version          # builds .runtime/ (uv + Python + deps) inside the repo
 .runtime/bin/uv pip install --python .runtime/venv/bin/python pytest
 .runtime/venv/bin/python -m pytest -q

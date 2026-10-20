@@ -9,7 +9,7 @@ description = "Lift clean, editable Markdown, Word and PDF out of flattened PDFs
 readme = "README.md"
 requires-python = ">=3.9"
 license = "AGPL-3.0-or-later"
-authors = [{ name = "Anshul" }]
+authors = [{ name = "Atharv Khare" }]
 keywords = ["pdf", "markdown", "docx", "extraction", "exam", "question-paper", "ocr", "converter"]
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -33,8 +33,8 @@ dev = ["pytest>=7"]
 paperlift = "paperlift.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/YOUR-USERNAME/paperlift"
-Issues = "https://github.com/YOUR-USERNAME/paperlift/issues"
+Homepage = "https://github.com/1mystic/paperlift"
+Issues = "https://github.com/1mystic/paperlift/issues"
 
 [tool.setuptools]
 packages = ["paperlift"]

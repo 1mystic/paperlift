@@ -46,7 +46,7 @@ The first time, macOS may block it; right-click → Open instead.
 **Linux:**
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/paperlift.git
+git clone https://github.com/1mystic/paperlift.git
 cd paperlift
 ./paperlift.sh
 ```
@@ -72,8 +72,8 @@ To uninstall, delete the folder.
 ### Or install it as a command
 
 ```bash
-uvx --from git+https://github.com/YOUR-USERNAME/paperlift paperlift   # run without installing
-pipx install git+https://github.com/YOUR-USERNAME/paperlift            # or install the `paperlift` command
+uvx --from git+https://github.com/1mystic/paperlift paperlift   # run without installing
+pipx install git+https://github.com/1mystic/paperlift            # or install the `paperlift` command
 ```
 
 When installed this way, files live in `~/Paperlift/` (override with `PAPERLIFT_HOME`).
@@ -163,6 +163,6 @@ are stored in the repo.
 
 ## License
 
-[AGPL-3.0-or-later](LICENSE). Paperlift is built on
+Copyright (C) 2026 Atharv Khare. Licensed under [AGPL-3.0-or-later](LICENSE). Paperlift is built on
 [PyMuPDF](https://github.com/pymupdf/PyMuPDF), which is AGPL-licensed, so
 Paperlift uses the same license.
