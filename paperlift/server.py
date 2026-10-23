@@ -52,6 +52,7 @@ DEFAULT_SETTINGS = {
     "mode": "auto",                       # auto | qpaper | general
     "split": True, "renumber": True, "marks": True, "qtype_hint": True, "sections": "auto",
     "tables": True, "vector_figures": True, "page_markers": False, "ocr": "auto",
+    "audit": True, "audit_overlay": True,
     "limits": dict(DEFAULT_LIMITS),
 }
 
@@ -183,6 +184,7 @@ def file_list():
         if summary and status != "error":
             rel = lambda p: "/out/" + urllib.parse.quote(os.path.relpath(p, OUTPUT))
             rec.update(
+                audit=summary.get("audit"),
                 profile=summary.get("profile", "qpaper"),
                 outputs=[{"title": o["title"], "slug": o["slug"], "questions": o.get("questions", 0),
                           "stats": o.get("stats"), "files": {k: rel(v) for k, v in o["files"].items()}}
@@ -292,6 +294,34 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith("/out/"):
             p = self._under(OUTPUT, path[5:])
             return self._file(p, os.path.basename(p) if p and qs.get("dl") else None)
+        if path == "/api/audit-page":
+            # one annotated source page as PNG, rendered on demand (no browser PDF viewer needed)
+            stem = qs.get("stem", [""])[0]
+            d = self._under(OUTPUT, stem) if stem else None
+            try:
+                n = max(1, int(qs.get("n", ["1"])[0]))
+                dpi = min(150, max(40, int(qs.get("dpi", ["90"])[0])))
+            except ValueError:
+                return self._json({"error": "bad page"}, 400)
+            src = next((os.path.join(d, f) for f in sorted(os.listdir(d)) if f.endswith("_audit.pdf")), None) \
+                if d and os.path.isdir(d) else None
+            if not src:
+                return self._json({"error": "not found"}, 404)
+            import pymupdf as fitz
+            doc = fitz.open(src)
+            try:
+                if n > doc.page_count:
+                    return self._json({"error": "no such page"}, 404)
+                data = doc[n - 1].get_pixmap(dpi=dpi, alpha=False).tobytes("png")
+            finally:
+                doc.close()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(data)
+            return
         if path == "/api/zip":
             stem = qs.get("stem", [""])[0]
             d = self._under(OUTPUT, stem) if stem else None

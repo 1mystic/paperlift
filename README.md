@@ -5,8 +5,9 @@
 <h1 align="center">Paperlift</h1>
 
 <p align="center">
-  <b>Lift clean, editable documents out of flattened PDFs.</b><br>
-  Markdown, Word, PDF and JSON, with figures intact. Runs entirely on your computer.
+  <b>Lift clean, editable documents out of flattened PDFs, and prove nothing was lost.</b><br>
+  Markdown, Word, PDF and JSON, with figures intact. Every conversion is checked against the source.<br>
+  Runs entirely on your computer.
 </p>
 
 <p align="center">
@@ -37,6 +38,51 @@ It has two profiles and picks the right one per file automatically:
 Scanned pages are kept as images, or read as text with the optional OCR add-on.
 
 <p align="center"><img src="docs/screenshot-document.png" alt="Document preview with extraction options" width="860"></p>
+
+## Fidelity audit: every conversion checks itself
+
+Converters usually fail silently: a dropped line, a lost option or a duplicated
+paragraph goes straight into your notes. Paperlift checks its own output with
+no reference answers needed. A flattened PDF still contains an exact text layer
+and its original images. That says nothing about structure, but it says exactly
+what content must survive. So every word and image on the page is accounted for:
+
+- **kept**: it must appear in the output exactly once, in an order the page
+  layout requires;
+- **removed on purpose**: with a stated reason (console metadata, running
+  footer, page number…), listed for you to see.
+
+Exam papers are also checked against **their own built-in checksums**:
+- the declared number of questions;
+- the declared section marks;
+- question IDs and option IDs, which must form unbroken sequences (each
+  short-answer question uses up exactly one option ID);
+- one marked answer per multiple-choice question.
+
+<p align="center"><img src="docs/screenshot-audit.png" alt="Fidelity audit report" width="860"></p>
+
+Each file gets a fidelity score and a verdict: *Verified*, *Minor
+differences* or *Needs review*. You also get a list of findings with page
+numbers, and the source pages annotated in colour:
+
+<p align="center"><img src="docs/audit-overlay-example.png" alt="Annotated source page showing an injected fault" width="430"><br>
+<sub>An injected fault on a synthetic paper: a deleted option (red) and two lost words (amber).</sub></p>
+
+**How well does it work?** We tested 9 documents and about 2,700 deliberately
+corrupted extractions:
+- 0 false alarms on clean extractions;
+- 99–100 % of lost, duplicated or altered words, options, questions, images and
+  table rows detected;
+- 99.1 % of detectable reading-order swaps detected.
+
+The method, the maths, the benchmark and its limits are written up in
+**[docs/RESEARCH.md](docs/RESEARCH.md)**. It checks content and order, not
+structure: a heading turned into a paragraph is outside what it can see.
+
+```bash
+./paperlift.sh audit paper.pdf --overlay ./audit     # report in the terminal + annotated PDF
+python bench/fault_injection.py                      # reproduce the benchmark
+```
 
 ## Quick start
 
@@ -87,6 +133,7 @@ When installed this way, files live in `~/Paperlift/` (override with `PAPERLIFT_
 ./paperlift.sh convert inbox/ -o ~/Desktop/clean --formats md,docx
 ./paperlift.sh convert big.pdf --max-pages 300               # raise a limit for one run
 ./paperlift.sh detect *.pdf                                  # show which profile each file gets
+./paperlift.sh audit *.pdf --overlay ./audit                 # verify extractions, save annotated PDFs
 ./paperlift.sh serve --port 9000 --no-browser
 ```
 
@@ -103,6 +150,8 @@ output/ml-notes-week3/
 ├── ml-notes-week3.docx            Word, images embedded
 ├── ml-notes-week3.pdf             clean re-typeset PDF
 ├── ml-notes-week3.json            structured blocks / questions
+├── ml-notes-week3_audit.pdf       source pages annotated by the fidelity audit
+├── _audit.json                    the audit report
 └── images/
 ```
 
@@ -137,12 +186,21 @@ re-extract.
   figures), and text blocks. It then orders them column by column and classifies
   headings, list items, code and paragraphs, joining hyphenated words and
   paragraphs split across pages.
+- **Fidelity audit.** Source text is split into units with a fate (kept, or
+  dropped with a reason). Kept tokens are matched to the output by a
+  one-to-one, consumption-based k-gram alignment. The audit then computes text
+  and image recall, precision and pairwise order agreement on layout-determined
+  pairs. Exam papers add five document-declared checksums. See
+  [docs/RESEARCH.md](docs/RESEARCH.md).
 - **OCR** (optional) uses [RapidOCR](https://github.com/RapidAI/RapidOCR) on
   ONNX Runtime with the same column-aware grouping. It runs locally, with no cloud.
 
 ## Limitations
 
 - Equations stay images. They are not converted to LaTeX or editable Word equations.
+- The fidelity audit verifies content and order, not structure, and it cannot
+  check scanned pages (they have no text layer). A moved answer mark keeps the
+  answer count intact, so it is not caught.
 - Complex layouts (magazine spreads, tables without ruling lines, forms) may
   need manual touch-up. Tables inside scanned pages become plain text.
 - The exam-paper profile targets one export layout. Other exam formats fall

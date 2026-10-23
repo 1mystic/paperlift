@@ -1,5 +1,5 @@
 # private runtime (uv, Python, venv, caches)
-.runtime/
+.runtime
 .venv/
 # user data
 inbox/*
@@ -17,3 +17,5 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+# benchmark output
+bench/last_run.json

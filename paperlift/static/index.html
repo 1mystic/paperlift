@@ -174,6 +174,49 @@ pre.mdsrc{flex:1;margin:12px 20px 20px;background:var(--panel);border:1px solid 
 .toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,8px);background:#fff;color:#111;border-radius:10px;padding:9px 14px;font-weight:500;opacity:0;transition:.25s var(--ease);pointer-events:none;z-index:9;display:flex;gap:8px;align-items:center;max-width:90vw}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.err{background:#2a1513;color:#ffb3ab;border:1px solid var(--accent-d)}
+/* fidelity audit */
+.fid{display:inline-flex;gap:5px;align-items:center;font-size:11px;border-radius:5px;padding:1px 6px;border:1px solid var(--line2);white-space:nowrap}
+.fid svg{width:11px;height:11px}
+.fid.verified{color:var(--ok);border-color:#2b5a3d}
+.fid.minor{color:var(--warn);border-color:#5a4a28}
+.fid.review{color:#ff8a80;border-color:var(--accent-d)}
+.fid.unverifiable{color:var(--mute)}
+.auditwrap{flex:1;overflow:auto;padding:12px 20px 24px}
+.ahead{display:flex;gap:22px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.ring{width:84px;height:84px;flex:none;position:relative}
+.ring svg{width:84px;height:84px;transform:rotate(-90deg)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font:600 20px var(--sans)}
+.ahead h2{margin:0 0 4px;font:400 22px var(--serif)}
+.ahead p{margin:0;color:var(--mute);font-size:13px;max-width:520px}
+.meters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+.meter{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;transition:border-color .15s}
+.meter:hover{border-color:var(--line2)}
+.meter small{color:var(--mute);font-size:11.5px;display:flex;justify-content:space-between}
+.meter b{font-size:18px;font-weight:600;display:block;margin:2px 0 6px}
+.meter .bar{margin:0}
+.asec{margin:16px 0 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:600}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:9px;transition:background .15s}
+.chk:hover{background:var(--panel)}
+.chk svg{margin-top:2px}
+.chk .ok{color:var(--ok)}.chk .no{color:#ff8a80}
+.iss{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;background:var(--panel);transition:border-color .15s}
+.iss:hover{border-color:var(--line2)}
+.sev{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none}
+.sev.high{background:#ff6b5e}.sev.medium{background:var(--warn)}.sev.low{background:#8a8a92}
+.iss .pg{margin-left:auto;color:var(--dim);font-size:12px;white-space:nowrap}
+.iss small{display:block;color:var(--mute);font-size:12px;margin-top:2px;word-break:break-word}
+.drops{display:flex;flex-wrap:wrap;gap:6px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--mute);font-size:12px;margin:6px 0 8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.pages{display:flex;flex-direction:column;gap:14px}
+.pagecard{background:#fff;border-radius:10px;overflow:hidden;position:relative;border:2px solid transparent;transition:border-color .2s,box-shadow .2s}
+.pagecard:hover{box-shadow:0 10px 30px -14px #000}
+.pagecard.flash{border-color:var(--accent);box-shadow:0 0 0 4px #ff5a4e33}
+.pagecard img{display:block;width:100%;height:auto;min-height:200px}
+.pagecard span{position:absolute;top:8px;right:8px;background:#111c;color:#fff;font-size:11px;border-radius:6px;padding:2px 8px}
+.iss.go{cursor:pointer}
+.iss.go:hover .pg{color:var(--accent)}
+@media (max-width:900px){.meters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .settings{max-width:640px;margin:0 auto;padding:80px 24px}
 .settings h1{font:400 40px var(--serif);margin:0 0 8px}
 .settings p{color:var(--mute)}
@@ -315,6 +358,7 @@ function homeView(){
 function itemRow(f){
   const warn = f.warnings && f.warnings.length;
   const kind = f.profile ? `<span class="badge kind">${f.profile==='qpaper'?'Exam paper':'Document'}</span>` : '';
+  const fid = (f.audit && f.status==='done' && f.audit.verdict) ? fidBadge(f.audit) : '';
   const badge = f.status==='done' ? (warn?`<span class="badge warn">${warn} warning${warn>1?'s':''}</span>`:`<span class="badge done">Ready</span>`)
      : `<span class="badge ${f.status}">${({new:'Not extracted',queued:'Queued',processing:'Extracting',error:'Failed'})[f.status]||f.status}</span>`;
   let sub;
@@ -329,7 +373,13 @@ function itemRow(f){
   const acts = f.status==='queued' ? `<button class="mini" title="Cancel" onclick="event.stopPropagation();cancelJob('${esc(f.name)}')">${ic('stop','sm')}</button>`
     : f.status==='processing' ? '' : `${f.status!=='done'?`<button class="mini" title="Extract" onclick="event.stopPropagation();convert(['${esc(f.name)}'])">${ic('play','sm')}</button>`:''}<button class="mini danger" title="Remove" onclick="event.stopPropagation();del('${esc(f.name)}')">${ic('trash','sm')}</button>`;
   return `<div class="item" onclick="${click}" title="${f.status==='done'?'Open':f.status==='new'||f.status==='error'?'Extract':''}">
-    ${ic('arrow','arr')}<div style="min-width:0;flex:1;padding-right:56px"><div class="row" style="flex-wrap:nowrap;gap:6px"><span class="nm">${esc(f.name)}</span>${badge}${kind}</div><div class="meta nm">${sub}</div>${bar}</div><div class="acts">${acts}</div></div>`;
+    ${ic('arrow','arr')}<div style="min-width:0;flex:1;padding-right:56px"><div class="row" style="flex-wrap:nowrap;gap:6px"><span class="nm">${esc(f.name)}</span>${fid||badge}${kind}</div><div class="meta nm">${sub}</div>${bar}</div><div class="acts">${acts}</div></div>`;
+}
+const VERDICT = {verified:['Verified','check'], minor:['Minor differences','alert'], review:['Needs review','alert'], unverifiable:['Not verifiable','shield']};
+function fidBadge(a){
+  const [l,i] = VERDICT[a.verdict]||['Audit','shield'];
+  const sc = a.verdict==='unverifiable' ? '' : ` ${Number(a.score).toFixed(a.score>=99.95?0:1)}`;
+  return `<span class="fid ${a.verdict}" title="Fidelity audit: ${l}${a.issues?` · ${a.issues} finding${a.issues>1?'s':''}`:''}">${ic(i,'sm')}${l}${sc}</span>`;
 }
 function toggleFmt(k){ let f=[...(S.settings.formats||[])]; f=f.includes(k)?f.filter(x=>x!==k):[...f,k]; saveSettings({formats:f}) }
 function toggleSet(k){ saveSettings({[k]: S.settings[k]===false}) }
@@ -389,8 +439,8 @@ function detailView(){
   const o=outs[S.outIdx], g=f.guess||{}, op=f.options||{}, isQ=f.profile==='qpaper';
   const val = k => esc(op[k] ?? ''), ph = k => esc(g[k] ?? '');
   const parts = outs.length>1 ? outs.map((x,i)=>`<button class="chip ${i===S.outIdx?'on':''}" onclick="S.outIdx=${i};render(true)">${esc(x.slug.split('_').pop())}</button>`).join('') : '';
-  const vt = [['preview','Preview','eye'],['markdown','Markdown source','code']].map(([k,l,i])=>`<button class="chip ${S.sub===k?'on':''}" onclick="S.sub='${k}';render(true)">${ic(i,'sm')}${l}</button>`).join('');
-  const labels = {md_zip:['Markdown + images','.zip'], md:['Markdown only','.md'], docx:['Word document','.docx'], pdf:['PDF','.pdf'], json:['Structured JSON','.json']};
+  const vt = [['preview','Preview','eye'],['markdown','Markdown source','code']].concat(f.audit && f.audit.verdict ? [['audit','Fidelity audit','shield']] : []).map(([k,l,i])=>`<button class="chip ${S.sub===k?'on':''}" onclick="S.sub='${k}';render(true)">${ic(i,'sm')}${l}</button>`).join('');
+  const labels = {md_zip:['Markdown + images','.zip'], md:['Markdown only','.md'], docx:['Word document','.docx'], pdf:['PDF','.pdf'], json:['Structured JSON','.json'], audit_pdf:['Audit overlay','.pdf']};
   const dls = Object.entries(labels).filter(([k])=>o.files[k]).map(([k,[l,ext]])=>`<a href="${o.files[k]}?dl=1">${ic('dl')}${l}<span>${ext}</span></a>`).join('')
      + `<a href="/api/zip?stem=${encodeURIComponent(f.stem)}">${ic('dl')}Everything<span>.zip</span></a>`;
   const warns = (f.warnings||[]).length ? `<h3>Check these</h3><div class="warnbox">${ic('alert','sm')}<div>${f.warnings.map(esc).join('<br>')}</div></div>` : '';
@@ -421,9 +471,10 @@ function detailView(){
   }
   return `<div class="detail">
     <div class="prevwrap">
-      <div class="dhead"><button class="back" onclick="go('home')">${ic('back','sm')}Library</button><div class="t">${esc(o.title||f.stem)}</div></div>
+      <div class="dhead"><button class="back" onclick="go('home')">${ic('back','sm')}Library</button><div class="t">${esc(o.title||f.stem)}</div>${f.audit&&f.audit.verdict?`<button class="back" style="margin-left:auto;border:0;padding:0" onclick="S.sub='audit';render(true)">${fidBadge(f.audit)}</button>`:''}</div>
       <div class="subtabs row">${vt}${parts?'<span style="width:10px"></span>'+parts:''}</div>
-      ${S.sub==='preview' && o.files.html ? `<iframe title="Preview" src="${o.files.html}?t=${Date.now()}"></iframe>` : `<pre class="mdsrc" id="mdsrc">Loading…</pre>`}
+      ${S.sub==='audit' ? `<div class="auditwrap" id="auditwrap"><div class="meta">Loading audit…</div></div>`
+        : S.sub==='preview' && o.files.html ? `<iframe title="Preview" src="${o.files.html}?t=${Date.now()}"></iframe>` : `<pre class="mdsrc" id="mdsrc">Loading…</pre>`}
     </div>
     <div class="insp">
       <h3>Download</h3><div class="dl">${dls}</div>
@@ -434,6 +485,44 @@ function detailView(){
       <button class="ghost" onclick="openDir('output','${esc(f.stem)}')">${ic('folder','sm')}Show in folder</button>
       <button class="ghost danger" onclick="del('${esc(f.name)}')">${ic('trash','sm')}Remove file</button>
     </div></div>`;
+}
+const pct = x => (x*100).toFixed(x>=0.9995?0:1)+'%';
+async function loadAudit(){
+  const f=S.files.find(x=>x.stem===S.stem); const el=$('#auditwrap'); if(!el||!f) return;
+  let a; try{ a = await (await fetch('/out/'+encodeURIComponent(f.stem)+'/_audit.json?t='+Date.now())).json() }catch(e){ el.innerHTML='<div class="meta">No audit for this file. Re-extract with the audit turned on.</div>'; return }
+  const o=(f.outputs||[])[0]||{files:{}}; const m=a.metrics;
+  const col = {verified:'#46c27a', minor:'#e9b44c', review:'#ff6b5e', unverifiable:'#8a8a92'}[a.verdict];
+  const C=2*Math.PI*36, frac=a.verdict==='unverifiable'?0:a.score/100;
+  const desc = {verified:'Every word and image the source says should be kept was found in the output, in reading order'+(a.checks.length?', and all of the paper’s own checksums agree.':'.'),
+    minor:'Small differences were found. They are listed below and outlined on the page.',
+    review:'Content may be missing, duplicated or out of order. Check the findings below; they are marked on the source pages.',
+    unverifiable:'These pages have no text layer (scanned), so there is nothing to check the output against.'}[a.verdict];
+  const meter=(label,v,hint)=>`<div class="meter" title="${hint}"><small><span>${label}</span></small><b>${pct(v)}</b><div class="bar"><div style="width:${v*100}%;background:${v>=0.9995?'var(--ok)':v>=0.98?'var(--warn)':'#ff6b5e'}"></div></div></div>`;
+  const checks = a.checks.map(c=>`<div class="chk">${c.ok?`<svg class="i sm ok"><use href="#i-check"/></svg>`:`<svg class="i sm no"><use href="#i-x"/></svg>`}<div>${esc(c.detail)}</div></div>`).join('');
+  const issues = a.issues.map(i=>`<div class="iss${i.page&&o.files.audit_pdf?' go':''}" ${i.page&&o.files.audit_pdf?`onclick="jumpPage(${i.page})" title="Show on page ${i.page}"`:''}><span class="sev ${i.severity}"></span><div style="min-width:0">${esc(i.detail)}${i.excerpt?`<small>${esc(i.excerpt)}</small>`:''}</div><span class="pg">${i.page?'page '+i.page:''}</span></div>`).join('');
+  const drops = Object.entries(a.dropped||{}).filter(([k])=>k!=='no text').map(([k,v])=>`<span class="stat"><b>${v}</b>${esc(k)}</span>`).join('');
+  el.innerHTML = `
+    <div class="ahead"><div class="ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="#2a2a2e" stroke-width="8"/><circle cx="42" cy="42" r="36" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C*frac} ${C}"/></svg><b>${a.verdict==='unverifiable'?'–':Math.round(a.score*10)/10}</b></div>
+      <div><h2>${(VERDICT[a.verdict]||['Audit'])[0]}</h2><p>${desc}</p></div></div>
+    <div class="meters">
+      ${meter('Text kept', m.token_recall, m.kept_tokens+' source words that must survive')}
+      ${meter('Images kept', m.image_recall, m.kept_images+' images that must survive')}
+      ${meter('Reading order', m.order, m.order_pairs+' layout-determined pairs, '+m.order_inversions+' inverted')}
+      ${meter('No extra text', m.precision, m.output_tokens+' output words traced back to the source')}
+    </div>
+    ${a.checks.length?`<div class="asec">Checksums declared by the paper</div>${checks}`:''}
+    <div class="asec">Findings ${a.issues.length?`(${a.issues.length})`:''}</div>${issues||'<div class="meta" style="padding:4px 10px">None. The output accounts for the whole source.</div>'}
+    ${(a.notes||[]).length?`<div class="asec">Notes</div>${a.notes.map(n=>`<div class="chk">${ic('alert','sm')}<div>${esc(n)}</div></div>`).join('')}`:''}
+    ${drops?`<div class="asec">Removed on purpose</div><div class="drops">${drops}</div>`:''}
+    ${o.files.audit_pdf?`<div class="asec">Source pages, annotated</div>
+      <div class="legend"><span><i style="background:#29a05c80"></i>kept and found</span><span><i style="background:#ee9e1a"></i>partly found</span><span><i style="background:#e62e26"></i>not found</span><span><i style="background:#73738088"></i>removed on purpose</span><span><i style="border:1.5px dashed #5a4de6"></i>out of order</span></div>
+      <div class="pages">${Array.from({length: Number((f.meta||{}).pages)||Object.keys(a.pages||{}).length||1}, (_,k)=>`<div class="pagecard" id="pg-${k+1}"><img loading="lazy" alt="Page ${k+1}, annotated" src="/api/audit-page?stem=${encodeURIComponent(f.stem)}&n=${k+1}&t=${Date.now()}"><span>page ${k+1}</span></div>`).join('')}</div>
+      <p class="meta" style="margin-top:10px"><a href="${o.files.audit_pdf}?dl=1" style="color:var(--mute)">Download the annotated PDF</a></p>`:''}`;
+}
+function jumpPage(n){
+  const el=document.getElementById('pg-'+n); if(!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+  el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'), 1600);
 }
 async function loadMd(){
   const f=S.files.find(x=>x.stem===S.stem); const o=(f.outputs||[])[S.outIdx||0];
@@ -477,13 +566,16 @@ function settingsView(){
       <div class="tog ${s.page_markers?'on':''}" onclick="saveSettings({page_markers:!S.settings.page_markers})"><span>Mark page breaks</span><span class="sw"></span></div>
       <div class="okline" style="padding:8px 0">${S.ocr?`<svg class="i sm g"><use href="#i-check"/></svg>OCR for scanned pages is installed`:`${ic('alert','sm')}OCR is not installed. Run <code>./paperlift.sh ocr</code> to read scanned pages.`}</div>
     </div>
+    <h2>Verification</h2>
+    <div class="card">${tg('audit','Fidelity audit','Check every output against the source text layer and the paper’s own checksums')}${tg('audit_overlay','Annotated audit PDF','Source pages marked with what was kept, removed or missing')}</div>
     <h2>Command line</h2>
     <pre class="cli">./paperlift.sh convert ~/Downloads/*.pdf
 ./paperlift.sh convert inbox/ -o ~/Desktop/clean --formats md,docx
 ./paperlift.sh convert notes.pdf --mode general --page-markers
 ./paperlift.sh convert paper.pdf --mode qpaper --code CS3004 --exam "Quiz 2"
 ./paperlift.sh convert big.pdf --max-pages 200
-./paperlift.sh detect *.pdf</pre>
+./paperlift.sh detect *.pdf
+./paperlift.sh audit paper.pdf            # print the fidelity report</pre>
     <p>You can also copy PDFs into the <code>inbox</code> folder and choose <b>Rescan inbox</b>.</p>
   </div>`;
 }
@@ -504,6 +596,7 @@ function render(force){
   lastKey=key;
   $('#main').innerHTML=html;
   if(S.view==='paper' && S.sub==='markdown') loadMd();
+  if(S.view==='paper' && S.sub==='audit') loadAudit();
 }
 let pollT=null;
 function poll(){ clearInterval(pollT); pollT=setInterval(async()=>{ await refresh(); if(!S.pendingN){ clearInterval(pollT); pollT=null; refresh() } }, 800) }

@@ -138,6 +138,7 @@ class Paper:
     sections: List[Section] = field(default_factory=list)
     images: Dict[str, dict] = field(default_factory=dict)   # name -> {w,h,px_w,px_h}
     warnings: List[str] = field(default_factory=list)
+    xrefs: Dict[int, str] = field(default_factory=dict)     # source image xref -> output image name
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -223,10 +224,10 @@ def page_lines(page: fitz.Page, pno: int) -> List[Line]:
                     pieces.append(cur)
                 for pc in pieces:
                     text = "".join(ch["c"] for ch in pc)
-                    r = fitz.Rect(pc[0]["bbox"])
-                    for ch in pc[1:]:
-                        r |= fitz.Rect(ch["bbox"])
-                    r.y0, r.y1 = s["bbox"][1], s["bbox"][3]
+                    # plain min/max instead of Rect unions: this loop runs once per character
+                    x0 = min(ch["bbox"][0] for ch in pc)
+                    x1 = max(ch["bbox"][2] for ch in pc)
+                    r = fitz.Rect(x0, s["bbox"][1], x1, s["bbox"][3])
                     els.append(dict(kind="t", text=text, bbox=r, color=s["color"], size=s["size"],
                                     flags=s["flags"], oy=s["origin"][1]))
     for info in page.get_image_info(xrefs=True):
@@ -527,6 +528,7 @@ class Parser:
                     self.paper.warnings.append(f"Q{q.number}: no accepted answer detected")
         self.paper.meta.update({"pages": str(self.doc.page_count)})
         self.paper.images = self.images.meta
+        self.paper.xrefs = dict(self.images.done)
         return self.paper
 
     def feed(self, line: Line):
@@ -548,10 +550,11 @@ class Parser:
             self.state, self.target = "section", None
             return
 
-        if self.state == "section":
-            m = re.match(r"^\s*(Number of Questions(?: to be attempted)?|Section Marks|Section Negative Marks)\s*:\s*(.+)$", plain, re.I)
-            if m:
-                self.section.meta[m.group(1)] = m.group(2).strip()
+        # declared section totals (used by the fidelity audit as checksums); these keys only
+        # occur in section headers, so capture them whatever the parser state is
+        m = re.match(r"^\s*(Number of Questions(?: to be attempted)?|Section Marks|Section Negative Marks)\s*:\s*(.+)$", plain, re.I)
+        if m and self.section is not None and not self.section.questions:
+            self.section.meta.setdefault(m.group(1).strip(), m.group(2).strip())
 
         # question header
         m = QNUM_RE.search(plain)

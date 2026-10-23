@@ -22,6 +22,8 @@ jobs:
           uv pip install -e ".[dev]"
       - name: Test
         run: uv run --no-sync pytest -q
+      - name: Fidelity-audit benchmark (smoke)
+        run: TRIALS=5 uv run --no-sync python bench/fault_injection.py
 
   launcher:
     strategy:

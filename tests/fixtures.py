@@ -140,6 +140,8 @@ def make_qpaper(path: str):
     y += 20
     line("Sample Subject", x=230, size=18, bold=True)
     line("Section Id :", x=21); y -= 19; line("1234567890", x=330)
+    line("Number of Questions :", x=21); y -= 19; line("4", x=330)
+    line("Section Marks :", x=21); y -= 19; line("7", x=330)
     line("Sub-Section Number :", x=21); y -= 19; line("1", x=330)
     qs = [
         ("MCQ", "Multiple Choice Question", 'THIS IS QUESTION PAPER FOR THE SUBJECT "DEGREE LEVEL : SAMPLE SUBJECT"', 0, [("Yes", True), ("No", False)], None),

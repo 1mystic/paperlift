@@ -58,6 +58,11 @@ class GDoc:
     warnings: List[str] = field(default_factory=list)
     pages: int = 0
     ocr_pages: List[int] = field(default_factory=list)
+    # provenance kept for the fidelity audit
+    xrefs: Dict[int, str] = field(default_factory=dict)          # source image xref -> output name
+    regions: Dict[int, List[list]] = field(default_factory=dict) # page -> [x0,y0,x1,y1,image] rendered as figures
+    margin_keys: List[str] = field(default_factory=list)         # normalised repeated header/footer lines
+    scan_pages: List[int] = field(default_factory=list)          # 1-based pages without a text layer
 
 
 # --------------------------------------------------------------------------
@@ -230,6 +235,8 @@ class GeneralExtractor:
         md = self.doc.metadata or {}
         self.g.meta = {k: v for k, v in md.items() if v and k in ("title", "author", "subject", "creator", "producer", "creationDate")}
         self.g.meta["pages"] = str(total)
+        self.g.xrefs = dict(self.images.done)
+        self.g.margin_keys = sorted(self.repeated)
         return self.g
 
     def page(self, page: fitz.Page, pno: int):
@@ -368,9 +375,12 @@ class GeneralExtractor:
             self.emit(it, page, pno)
 
     def scanned_page(self, page, pno):
+        self.g.scan_pages.append(pno + 1)
         mode = self.opts.get("ocr", "auto")
         if mode != "off" and ocr_available():
             blocks = ocr_page_blocks(page)
+            for b in blocks:
+                b["ocr"] = True
             if blocks:
                 self.g.blocks.extend(blocks)
                 self.g.ocr_pages.append(pno + 1)
@@ -418,7 +428,9 @@ class GeneralExtractor:
                                   "h": round(r.height * m.get("fy", 1), 1)})
         elif k == "vector":
             r = it["bbox"] + (-3, -3, 3, 3)
+            self.g.regions.setdefault(pno, []).append([round(v, 1) for v in (r & page.rect)])
             name = self.images.add_render(page, r & page.rect, dpi=170)
+            self.g.regions[pno][-1].append(name)
             self.g.blocks.append({"type": "figure", "img": name, "w": round(r.width, 1), "h": round(r.height, 1)})
         else:
             self.text_block(it)
@@ -533,10 +545,17 @@ class GeneralExtractor:
 
     @staticmethod
     def _join(cur, runs):
-        last = next((r for r in reversed(cur["runs"]) if "t" in r), None)
+        """Join a continuation line; undo a hyphenated line break ("Gravitations-" + "wellen").
+        The hyphen may sit in an earlier run than the last one (trailing-space spans)."""
+        texts = [r for r in cur["runs"] if "t" in r]
         first = next((r for r in runs if "t" in r), None)
-        if last and first and re.search(r"[A-Za-z]-\s*$", last["t"]) and re.match(r"\s*[a-z]", first["t"]):
-            last["t"] = re.sub(r"-\s*$", "", last["t"])
+        tail = "".join(r["t"] for r in texts[-3:])
+        if texts and first and re.search(r"[A-Za-z]-\s*$", tail) and re.match(r"\s*[a-z]", first["t"]):
+            for r in reversed(texts):            # strip trailing blanks, then the hyphen
+                if r["t"].strip():
+                    r["t"] = re.sub(r"-\s*$", "", r["t"])
+                    break
+                r["t"] = ""
             first["t"] = first["t"].lstrip()
         else:
             cur["runs"].append({"t": " "})
@@ -562,14 +581,8 @@ class GeneralExtractor:
                     continue
             b.pop("_open", None)
             out.append(b)
-        # mark list continuation spacing and dedupe consecutive identical headings
-        clean = []
-        for b in out:
-            if clean and b["type"] == "heading" and clean[-1]["type"] == "heading" and \
-                    runs_plain(b["runs"]) == runs_plain(clean[-1]["runs"]):
-                continue
-            clean.append(b)
-        self.g.blocks = clean
+        # (no silent de-duplication: the fidelity audit holds the extractor to "drop nothing unexplained")
+        self.g.blocks = out
 
     def pick_title(self) -> str:
         t = (self.doc.metadata or {}).get("title", "") or ""
@@ -921,5 +934,15 @@ def convert_general(pdf_path: str, out_root: str, opts: Optional[dict] = None,
                             "stats": dict(counts)}],
                "sections": [], "warnings": g.warnings, "meta": g.meta,
                "guess": {"title": g.title}, "options": opts, "ocr_pages": g.ocr_pages}
+    if opts.get("audit", True):
+        from .audit import audit_general, save_audit, summary_of
+        try:
+            rep, units = audit_general(pdf_path, g)
+            afiles = save_audit(rep, units, pdf_path, out_dir, stem, overlay=opts.get("audit_overlay", True))
+            summary["audit"] = summary_of(rep)
+            if "audit_pdf" in afiles:
+                files["audit_pdf"] = afiles["audit_pdf"]
+        except Exception as e:
+            summary["audit"] = {"error": f"{type(e).__name__}: {e}"}
     json.dump(summary, open(os.path.join(out_dir, "_summary.json"), "w"), indent=1, default=str)
     return summary

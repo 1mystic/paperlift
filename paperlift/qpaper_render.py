@@ -555,6 +555,18 @@ def convert(pdf_path: str, out_root: str, opts: Optional[dict] = None, formats=(
                 for i, s in enumerate(paper.sections)]
     summary = {"source": os.path.basename(pdf_path), "out_dir": out_dir, "outputs": produced,
                "sections": sections, "warnings": paper.warnings, "meta": paper.meta,
-               "guess": guess_title_fields(pdf_path, paper), "options": opts, "profile": "qpaper"}
+               "guess": guess_title_fields(pdf_path, paper), "options": opts, "profile": "qpaper",
+               "declared": [{"name": sc.name, **sc.meta} for sc in paper.sections if sc.meta]}
+    if opts.get("audit", True):
+        from .audit import audit_qpaper, save_audit, summary_of
+        try:
+            rep, units = audit_qpaper(pdf_path, paper, models)
+            files = save_audit(rep, units, pdf_path, out_dir, stem, overlay=opts.get("audit_overlay", True))
+            summary["audit"] = summary_of(rep)
+            if "audit_pdf" in files:
+                for o in produced:
+                    o["files"]["audit_pdf"] = files["audit_pdf"]
+        except Exception as e:
+            summary["audit"] = {"error": f"{type(e).__name__}: {e}"}
     json.dump(summary, open(os.path.join(out_dir, "_summary.json"), "w"), indent=1, default=str)
     return summary
