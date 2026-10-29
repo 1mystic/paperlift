@@ -424,7 +424,7 @@ async function api(path, body){
 }
 async function refresh(){
   let d; try{ d = await api('/api/state') }catch(e){ $('#ver').textContent='Server stopped'; return }
-  S.files=d.files; S.library=d.library; S.settings=d.settings; S.pendingN=d.pending; S.ocr=d.ocr;
+  S.files=d.files; S.library=d.library; S.caps=d.caps||{}; S.settings=d.settings; S.pendingN=d.pending; S.ocr=d.ocr;
   $('#ver').textContent = `v${d.version} · running locally`;
   $('#cnt').textContent = S.files.length;
   const q=$('#qcnt'); q.textContent=d.pending; q.classList.toggle('live', d.pending>0);
@@ -455,7 +455,7 @@ function homeView(){
         `<button class="xbtn" onclick="convert(S.files.filter(f=>f.status==='new'||f.status==='error').map(f=>f.name))">${ic('play','sm')}Extract all ${todo.length}</button>`) : '')
     + (show('done') ? sec('fin','Extracted','Ready to open, review and download.',fin,
         `<button class="btn" onclick="go('files')">${ic('files','sm')}Organise in File manager</button>`) : '');
-  if(!rows) rows = `<div class="empty">${ic('inbox')}${S.tab==='all'?'No files yet. Drop PDFs above, or copy them into the inbox folder and choose “Rescan inbox”.':'Nothing here right now.'}</div>`;
+  if(!rows) rows = `<div class="empty">${ic('inbox')}${S.tab==='all'?'No files yet. Drop PDFs above'+(window.PL_WEB?'.':', or copy them into the inbox folder and choose “Rescan inbox”.')+'':'Nothing here right now.'}</div>`;
   const l = L();
   const lim = [l.max_files?`up to ${l.max_files} files per batch`:'', l.max_mb?`${l.max_mb} MB`:'', l.max_pages?`${l.max_pages} pages per file`:''].filter(Boolean).join(' · ');
   return `
@@ -615,7 +615,7 @@ function detailView(){
       <h3>Extract as</h3><div class="seg" style="width:fit-content">${MODES.slice(1).map(([k,l,i])=>`<button class="${f.profile===k?'on':''}" data-mode="${k}" onclick="document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b===this))">${ic(i,'sm')}${l}</button>`).join('')}</div>
       ${panel}
       <button class="primary" onclick="reextract('${esc(f.name)}')">${ic('redo','sm')}Apply and re-extract</button>
-      <button class="ghost" onclick="openDir('output','${esc(f.stem)}')">${ic('folder','sm')}Show in folder</button>
+      ${window.PL_WEB?'':`<button class="ghost" onclick="openDir('output','${esc(f.stem)}')">${ic('folder','sm')}Show in folder</button>`}
       <button class="ghost danger" onclick="del('${esc(f.name)}')">${ic('trash','sm')}Remove file</button>
     </div></div>`;
 }
@@ -680,18 +680,16 @@ async function del(name){
 
 /* ---------------- settings ---------------- */
 function settingsView(){
-  const s=S.settings, l=L();
+  const s=S.settings, l=L(), caps=S.caps||{}, capped=Object.keys(caps).length>0;
   const tg=(k,t,d)=>`<div class="tog ${s[k]===false?'':'on'}" onclick="toggleSet('${k}')"><span>${t}${d?`<small>${d}</small>`:''}</span><span class="sw"></span></div>`;
   return `<div class="settings">
     <h1>Settings</h1>
     <p>Defaults for new extractions. Formats and the profile are chosen on the Library page.</p>
     <h2>Limits</h2>
     <div class="card">
-      <p style="margin:8px 0 12px;font-size:13px">Keeps batches manageable on slower machines. Use 0 for no limit.</p>
-      <div class="grid3">
-        <div class="field"><label>Files per batch</label><input type="number" min="0" id="l-max_files" value="${l.max_files}"></div>
-        <div class="field"><label>MB per file</label><input type="number" min="0" id="l-max_mb" value="${l.max_mb}"></div>
-        <div class="field"><label>Pages per file</label><input type="number" min="0" id="l-max_pages" value="${l.max_pages}"></div>
+      <p style="margin:8px 0 12px;font-size:13px">${capped?'Keeps this web version quick. You can lower these, but not raise them. The desktop app has no such ceiling.':'Keeps batches manageable on slower machines. Use 0 for no limit.'}</p>
+      <div class="grid3">${[['max_files','Files per batch'],['max_mb','MB per file'],['max_pages','Pages per file']].map(([k,t])=>
+        `<div class="field"><label>${t}${caps[k]?` <small style="color:var(--dim)">(max ${caps[k]})</small>`:''}</label><input type="number" min="${caps[k]?1:0}" ${caps[k]?`max="${caps[k]}"`:''} step="1" id="l-${k}" value="${l[k]}" onkeydown="if(event.key==='Enter')saveLimits()"></div>`).join('')}
       </div>
       <button class="ghost" style="width:auto;padding:7px 14px;margin:2px 0 10px" onclick="saveLimits()">${ic('check','sm')}Save limits</button>
     </div>
@@ -700,11 +698,11 @@ function settingsView(){
     <h2>Documents</h2>
     <div class="card">${tg('tables','Detect tables')}${tg('vector_figures','Keep vector drawings as figures')}
       <div class="tog ${s.page_markers?'on':''}" onclick="saveSettings({page_markers:!S.settings.page_markers})"><span>Mark page breaks</span><span class="sw"></span></div>
-      <div class="okline" style="padding:8px 0">${S.ocr?`<svg class="i sm g"><use href="#i-check"/></svg>OCR for scanned pages is installed`:`${ic('alert','sm')}OCR is not installed. Run <code>./paperlift.sh ocr</code> to read scanned pages.`}</div>
+      <div class="okline" style="padding:8px 0">${S.ocr?`<svg class="i sm g"><use href="#i-check"/></svg>OCR for scanned pages is installed`:`${ic('alert','sm')}OCR is not available${window.PL_WEB?' in the web version. Use the desktop app for scanned PDFs.':'. Run <code>./paperlift.sh ocr</code> to read scanned pages.'}`}</div>
     </div>
     <h2>Verification</h2>
     <div class="card">${tg('audit','Fidelity audit','Check every output against the source text layer and the paper’s own checksums')}${tg('audit_overlay','Annotated audit PDF','Source pages marked with what was kept, removed or missing')}</div>
-    <h2>Command line</h2>
+    ${window.PL_WEB?'':`<h2>Command line</h2>
     <pre class="cli">./paperlift.sh convert ~/Downloads/*.pdf
 ./paperlift.sh convert inbox/ -o ~/Desktop/clean --formats md,docx
 ./paperlift.sh convert notes.pdf --mode general --page-markers
@@ -712,12 +710,18 @@ function settingsView(){
 ./paperlift.sh convert big.pdf --max-pages 200
 ./paperlift.sh detect *.pdf
 ./paperlift.sh audit paper.pdf            # print the fidelity report</pre>
-    <p>You can also copy PDFs into the <code>inbox</code> folder and choose <b>Rescan inbox</b>.</p>
+    <p>You can also copy PDFs into the <code>inbox</code> folder and choose <b>Rescan inbox</b>.</p>`}
   </div>`;
 }
 async function saveLimits(){
-  const lim={}; ['max_files','max_mb','max_pages'].forEach(k=>lim[k]=parseInt($('#l-'+k).value||'0',10));
-  await saveSettings({limits:lim}); toast('Limits saved');
+  const lim={}, caps=S.caps||{}; let clamped=false;
+  for(const k of ['max_files','max_mb','max_pages']){
+    let v=parseInt($('#l-'+k).value,10); if(!Number.isFinite(v)||v<0) v=caps[k]||0;
+    if(caps[k] && (v===0||v>caps[k])){ v=caps[k]; clamped=true }
+    lim[k]=v;
+  }
+  await saveSettings({limits:lim});
+  toast(clamped?'Saved. Values above the web limits were lowered to the maximum':'Limits saved', clamped);
 }
 
 /* ---------------- dialogs, context menu ---------------- */

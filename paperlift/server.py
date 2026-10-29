@@ -25,7 +25,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import __version__ as VERSION
-from .limits import DEFAULT_LIMITS, check_pdf, clean_limits
+from .limits import DEFAULT_LIMITS, _caps, check_pdf, clean_limits
 
 PKG = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(PKG, "static")
@@ -408,7 +408,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/state":
             return self._json({"files": file_list(), "pending": JOBS.pending(), "settings": load_settings(),
                                "version": VERSION, "root": ROOT, "ocr": ocr_status(),
-                               "library": load_library()})
+                               "library": load_library(), "caps": _caps()})
         if path.startswith("/out/"):
             p = self._under(OUTPUT, path[5:])
             return self._file(p, os.path.basename(p) if p and qs.get("dl") else None)

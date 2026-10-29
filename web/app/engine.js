@@ -50,7 +50,7 @@
       const m = e.data;
       if (m.id) { const w = waiting.get(m.id); if (w) { waiting.delete(m.id); w(m); } return; }
       if (m.type === 'boot') bootText(m.text, false, m.pct);
-      else if (m.type === 'ready') { isReady = true; boot.remove(); readyRes(m); }
+      else if (m.type === 'ready') { isReady = true; boot.remove(); readyRes(m); restoreSettings(); }
       else if (m.type === 'fatal') { bootText('Could not start the engine: ' + m.text + ' Check your connection and reload.', true); readyRej(new Error(m.text)); }
       else if (m.type === 'job') { busy = true; overlay[m.name] = {status: 'processing', progress: [m.cur, m.total]}; }
       else if (m.type === 'job-end') { delete overlay[m.name]; busy = false; }
@@ -59,6 +59,15 @@
     };
     worker.postMessage({type: 'init', dirHandle: dirHandle || null, base: APP});
     return ready;
+  }
+
+  /* without a mounted folder the engine's files vanish on reload, so keep settings in localStorage */
+  async function restoreSettings() {
+    if (ws.mounted) return;
+    try {
+      const saved = localStorage.getItem('pl-settings');
+      if (saved) await call('POST', '/api/settings', {'Content-Type': 'application/json'}, new TextEncoder().encode(saved).buffer);
+    } catch (e) {}
   }
 
   function call(method, target, headers, body) {
@@ -83,7 +92,10 @@
     }
     const r = await call(method, target, headers, body);
     if (target.startsWith('/api/state') && r.status === 200) snap = new TextDecoder().decode(r.body);
-    if (BASE && (r.headers['Content-Type'] || '').includes('json')) {
+    if (target.startsWith('/api/') && r.status === 200 && target.startsWith('/api/settings') && method === 'POST' && !ws.mounted) {
+      try { localStorage.setItem('pl-settings', new TextDecoder().decode(r.body)); } catch (e) {}
+    }
+    if (BASE && target.startsWith('/api/') && (r.headers['Content-Type'] || '').includes('json')) {
       const t = new TextDecoder().decode(r.body).replaceAll('"/out/', '"' + BASE + '/out/');
       r.body = new TextEncoder().encode(t);
     }
