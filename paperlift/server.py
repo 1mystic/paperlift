@@ -359,6 +359,18 @@ class Handler(BaseHTTPRequestHandler):
         with open(path, "rb") as f:
             shutil.copyfileobj(f, self.wfile, 64 * 1024)
 
+    def _export(self, names, formats, layout, source):
+        kinds = [k for k in formats if k in EXPORT_KINDS]
+        if not names or not (kinds or source):
+            return self._json({"error": "nothing selected"}, 400)
+        zp, n = build_export(names, kinds, "folders" if layout == "folders" else "flat", source)
+        try:
+            if not n:
+                return self._json({"error": "None of the selected files have those formats yet. Extract them first."}, 404)
+            self._file(zp, "paperlift_export.zip")
+        finally:
+            os.remove(zp)
+
     @staticmethod
     def _under(base, rel):
         p = os.path.realpath(os.path.join(base, rel))
@@ -410,20 +422,10 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(data)
             return
         if path == "/api/export":
-            names = [n for n in qs.get("names", [""])[0].split("\n") if n]
-            kinds = [k for k in qs.get("formats", [""])[0].split(",") if k in EXPORT_KINDS]
-            layout = "folders" if qs.get("layout", ["flat"])[0] == "folders" else "flat"
-            source = qs.get("source", ["0"])[0] == "1"
-            if not names or not (kinds or source):
-                return self._json({"error": "nothing selected"}, 400)
-            zp, n = build_export(names, kinds, layout, source)
-            try:
-                if not n:
-                    return self._json({"error": "no matching files for those formats"}, 404)
-                self._file(zp, "paperlift_export.zip")
-            finally:
-                os.remove(zp)
-            return
+            return self._export(
+                [n for n in qs.get("names", [""])[0].split("\n") if n],
+                qs.get("formats", [""])[0].split(","), qs.get("layout", ["flat"])[0],
+                qs.get("source", ["0"])[0] == "1")
         if path == "/api/zip":
             stem = qs.get("stem", [""])[0]
             d = self._under(OUTPUT, stem) if stem else None
@@ -470,6 +472,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"ok": True, "name": name})
 
         body = self._body_json()
+        if u.path == "/api/export":
+            return self._export([str(n) for n in body.get("names") or []], body.get("formats") or [],
+                                body.get("layout", "flat"), bool(body.get("source")))
         if u.path == "/api/convert":
             s = load_settings()
             opts = dict(s, **(body.get("options") or {}))
@@ -503,13 +508,17 @@ class Handler(BaseHTTPRequestHandler):
             d = os.path.join(OUTPUT, stem_of(nm))
             if os.path.isdir(d):
                 shutil.rmtree(d)
+            with LIB_LOCK:
+                lib = load_library()
+                if lib["assign"].pop(nm, None) is not None:
+                    save_library(lib)
             return self._json({"ok": True})
         if u.path == "/api/folder":
             act, name = body.get("action"), clean_folder(body.get("name"))
             with LIB_LOCK:
                 lib = load_library()
                 if act == "create" and name:
-                    if name not in lib["folders"]:
+                    if name.lower() not in [f.lower() for f in lib["folders"]]:
                         lib["folders"].append(name)
                 elif act == "rename" and name and body.get("to") and name in lib["folders"]:
                     to = clean_folder(body["to"])
@@ -531,6 +540,8 @@ class Handler(BaseHTTPRequestHandler):
                     lib["folders"].append(folder)
                 for nm in body.get("names") or []:
                     nm = safe_name(nm)
+                    if not os.path.exists(os.path.join(INBOX, nm)):
+                        continue
                     if folder:
                         lib["assign"][nm] = folder
                     else:
@@ -543,7 +554,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "not found"}, 404)
             if old == new:
                 return self._json({"ok": True, "name": new})
-            if os.path.exists(os.path.join(INBOX, new)) or os.path.exists(os.path.join(OUTPUT, stem_of(new))):
+            case_only = old.lower() == new.lower()
+            if not case_only and (os.path.exists(os.path.join(INBOX, new)) or os.path.exists(os.path.join(OUTPUT, stem_of(new)))):
                 return self._json({"error": f"{new} already exists"}, 409)
             if JOBS.get(old).get("status") in ("queued", "processing"):
                 return self._json({"error": "file is queued or being processed"}, 409)

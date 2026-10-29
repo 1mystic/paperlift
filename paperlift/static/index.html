@@ -125,48 +125,102 @@ h1.big{font:400 58px/1.05 var(--serif);letter-spacing:-.02em;text-align:center;m
 
 
 /* ---------- file manager ---------- */
-.fm{display:grid;grid-template-columns:220px 1fr;height:100vh}
+.fm{display:grid;grid-template-columns:230px 1fr;height:100vh}
 .fm-side{border-right:1px solid #161618;padding:18px 10px;overflow:auto}
-.fm-side h3{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 8px 10px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
-.fm-side h3 button{background:none;border:0;color:var(--mute);padding:2px;border-radius:6px;display:grid}
+.fm-side h3{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 8px 8px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.fm-side h3 button{background:none;border:0;color:var(--mute);padding:3px;border-radius:6px;display:grid}
 .fm-side h3 button:hover{color:var(--text);background:var(--panel)}
-.fld{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;border:1px solid transparent;color:var(--text);transition:background .15s}
+.fld{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s;user-select:none}
 .fld:hover{background:var(--panel)}
 .fld.on{background:var(--panel2)}
-.fld.over{border-color:var(--accent);background:#ff5a4e14}
 .fld svg{color:var(--mute)}
-.fld span.nm2{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fld .nm2{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fld .n{font-size:11px;color:var(--dim)}
-.fld .fa{display:none;gap:2px}
-.fld:hover .fa{display:flex}.fld:hover .n{display:none}
+.over{border-color:var(--accent)!important;background:#ff5a4e18!important;box-shadow:0 0 0 3px #ff5a4e1f}
+.dragging-fm .fld *,.dragging-fm .tile *{pointer-events:none}
 .fm-main{display:flex;flex-direction:column;min-width:0;height:100vh}
-.fm-bar{display:flex;gap:8px;align-items:center;padding:14px 20px;border-bottom:1px solid #161618;flex-wrap:wrap}
-.fm-bar h2{font:400 22px var(--serif);margin:0 10px 0 0}
-.fm-bar input[type=search]{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;outline:none;width:200px}
+.fm-bar{display:flex;gap:8px;align-items:center;padding:12px 20px;border-bottom:1px solid #161618;flex-wrap:wrap}
+.crumb{display:flex;align-items:center;gap:6px;font:400 21px var(--serif);margin-right:8px;min-width:0}
+.crumb button{background:none;border:0;padding:2px 6px;border-radius:6px;color:var(--mute);font:inherit}
+.crumb button:hover{background:var(--panel);color:var(--text)}
+.crumb .cur{padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.crumb .sepc{color:var(--dim)}
+.fm-bar input[type=search]{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;outline:none;width:190px}
 .fm-bar input[type=search]:focus{border-color:#66666e}
 .fm-bar select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 8px}
-.btn{display:inline-flex;gap:7px;align-items:center;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:6px 11px;font-size:13px;transition:.15s;color:var(--text)}
+.btn{display:inline-flex;gap:7px;align-items:center;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:6px 11px;font-size:13px;transition:.15s;color:var(--text);white-space:nowrap}
 .btn:hover:not(:disabled){background:var(--panel3);border-color:#55555c}
 .btn:disabled{opacity:.4;cursor:default}
 .btn.pri{background:#fff;color:#111;border-color:#fff;font-weight:600}
 .btn.pri:hover:not(:disabled){background:#ececec}
 .btn.danger:hover:not(:disabled){color:#ff8a80;border-color:var(--accent-d)}
-.fm-sel{display:flex;gap:8px;align-items:center;padding:8px 20px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;min-height:46px}
-.fm-sel .cnt{color:var(--mute);margin-right:6px}
-.fm-list{overflow:auto;flex:1;padding:6px 12px 40px}
-.fr{display:grid;grid-template-columns:28px 1fr 130px 80px 110px 70px;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;border:1px solid transparent;cursor:default}
-.fr.h{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.06em;position:sticky;top:0;background:var(--bg);z-index:1}
+.btn.dangerfill{background:#d63c31;border-color:#d63c31;color:#fff;font-weight:600}
+.btn.dangerfill:hover{background:#e5493e}
+.fm-sel{display:flex;gap:8px;align-items:center;padding:8px 20px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;min-height:48px}
+.fm-sel .cnt{color:var(--mute);margin-right:6px;min-width:150px}
+.fm-sel .cnt b{color:var(--text)}
+.fm-list{overflow:auto;flex:1;padding:6px 12px 40px;position:relative}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;padding:10px 8px 6px}
+.tile{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;cursor:pointer;user-select:none;transition:background .15s,border-color .15s}
+.tile:hover{background:var(--panel2);border-color:var(--line2)}
+.tile svg{width:26px;height:26px;color:var(--warn);stroke-width:1.4}
+.tile b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile small{color:var(--dim);font-size:11.5px}
+.tile>div{min-width:0}
+.lbl2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:14px 10px 4px;font-weight:600}
+.fr{display:grid;grid-template-columns:28px minmax(0,1fr) 140px 80px 110px 64px;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;border:1px solid transparent;user-select:none}
+.fr.h{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.06em;position:sticky;top:0;background:var(--bg);z-index:1;margin-top:4px}
+.fr:not(.h){cursor:default}
 .fr:not(.h):hover{background:var(--panel);border-color:var(--line)}
-.fr.sel{background:var(--panel2);border-color:var(--line2)}
-.fr .nm{font-weight:500;cursor:pointer}.fr .nm:hover{text-decoration:underline}
-.fr .c{color:var(--mute);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fr input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px}
-.fr .rowacts{display:flex;gap:4px;opacity:0}.fr:hover .rowacts{opacity:1}
-.modal{position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:50}
-.mbox{background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:20px;width:min(440px,92vw)}
-.mbox h2{font:400 22px var(--serif);margin:0 0 4px}
-.mbox p{color:var(--mute);margin:0 0 14px;font-size:13px}
-.mbox .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:14px 0 6px;font-weight:600}
+.fr.sel{background:#ff5a4e14;border-color:#ff5a4e55}
+.fr.dragging{opacity:.4}
+.fr .nm{font-weight:500;display:flex;gap:8px;align-items:center;min-width:0}
+.fr .nm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fr .nm svg{color:var(--mute)}
+.fr .c{color:var(--mute);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:5px;align-items:center}
+.fr input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
+.fr .rowacts{display:flex;gap:4px;opacity:0;justify-content:flex-end}.fr:hover .rowacts,.fr.sel .rowacts{opacity:1}
+.fm-empty{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--dim);padding:60px 20px;text-align:center}
+.fm-empty svg{width:34px;height:34px}
+.dragghost{position:fixed;top:-100px;left:-100px;background:var(--accent);color:#fff;font-weight:600;border-radius:8px;padding:6px 12px;font-size:13px}
+.modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;z-index:50;animation:fade .15s}
+.mbox{background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:22px;width:min(460px,92vw);max-height:88vh;overflow:auto;box-shadow:0 30px 80px -20px #000;animation:pop .18s var(--ease)}
+@keyframes fade{from{opacity:0}}@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}}
+.mbox h2{font:400 23px var(--serif);margin:0 0 6px}
+.mbox p{color:var(--mute);margin:0 0 14px;font-size:13.5px}
+.mbox .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:16px 0 6px;font-weight:600}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.dlg-in{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:10px 12px;outline:none;margin-top:4px}
+.dlg-in:focus{border-color:var(--accent)}
+.dlg-err{color:#ff8a80;font-size:12.5px;margin-top:8px}
+.pf{display:flex;flex-direction:column;gap:3px;max-height:260px;overflow:auto;margin-top:4px}
+.pfrow{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;border:1px solid transparent;cursor:pointer;background:none;text-align:left;width:100%}
+.pfrow:hover{background:var(--panel2)}
+.pfrow.on{background:#ff5a4e14;border-color:#ff5a4e66}
+.pfrow svg{color:var(--mute)}.pfrow .n{margin-left:auto;font-size:11px;color:var(--dim)}
+.pfrow input{background:none;border:0;outline:none;flex:1;min-width:0;padding:0}
+.ctx{position:fixed;display:none;z-index:60;background:var(--panel2);border:1px solid var(--line2);border-radius:11px;padding:5px;min-width:210px;box-shadow:0 18px 50px -12px #000}
+.ctx button{display:flex;gap:10px;align-items:center;width:100%;background:none;border:0;border-radius:7px;padding:7px 10px;text-align:left}
+.ctx button:hover:not(:disabled){background:var(--panel3)}
+.ctx button:disabled{opacity:.35}.ctx button.danger:hover{color:#ff8a80}
+.ctx button svg{color:var(--mute)}
+.ctx kbd{margin-left:auto;font:11px var(--sans);color:var(--dim)}
+.ctx .sep{height:1px;background:var(--line);margin:4px 2px}
+.toast .tact{background:none;border:0;color:#d63c31;font-weight:700;padding:0 0 0 8px;cursor:pointer}
+.toast.hasact{pointer-events:auto}
+/* home sections */
+.sec{margin-top:30px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 10px 8px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.sec-h b{font-size:15px}.sec-h .n{color:var(--dim);margin-left:6px}
+.sec-h small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+.sec.todo .sec-h b{color:var(--warn)}
+.sec.run .sec-h b{color:var(--accent)}
+.sec.fin .sec-h b{color:var(--ok)}
+.item.todo{border-left:2px solid var(--warn);border-radius:4px 10px 10px 4px}
+.xbtn{background:#fff;color:#111;border:0;border-radius:7px;padding:4px 11px;font-weight:600;font-size:12.5px;display:inline-flex;gap:5px;align-items:center}
+.xbtn:hover{background:#ececec}
+.item .acts.show{opacity:1}
+.badge.new{color:var(--warn);border-color:#5a4a28}
 
 /* ---------- detail ---------- */
 .detail{display:grid;grid-template-columns:1fr 340px;height:100vh}
@@ -334,6 +388,8 @@ pre.cli{background:var(--panel);border:1px solid var(--line);border-radius:12px;
 </div>
 <input type="file" id="picker" accept="application/pdf,.pdf" multiple hidden>
 <div class="toast" id="toast" role="status"></div>
+<div id="modal-root"></div>
+<div class="ctx" id="ctx"></div>
 
 <script>
 const S = {files:[], settings:{limits:{}}, view:'home', tab:'all', stem:null, pending:[], uploading:false, sub:'preview', pendingN:0, ocr:false};
@@ -344,7 +400,12 @@ const FMT = [['md','Markdown'],['docx','Word'],['pdf','PDF'],['json','JSON']];
 const MODES = [['auto','Auto-detect','sparkle'],['qpaper','Exam paper','exam'],['general','Document','doc']];
 const fmtSize = b => b > 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.max(1, Math.round(b/1024))+' KB';
 
-function toast(t, err){ const e=$('#toast'); e.innerHTML=(err?ic('alert','sm'):ic('check','sm'))+'<span>'+esc(t)+'</span>'; e.classList.toggle('err',!!err); e.classList.add('show'); clearTimeout(e._t); e._t=setTimeout(()=>e.classList.remove('show'), err?4200:2400) }
+function toast(t, err, act){
+  const e=$('#toast'); e.innerHTML=(err?ic('alert','sm'):ic('check','sm'))+'<span>'+esc(t)+'</span>'+(act?`<button class="tact" onclick="toastAct()">${esc(act.label)}</button>`:'');
+  window._ta=act; e.classList.toggle('err',!!err); e.classList.toggle('hasact',!!act); e.classList.add('show');
+  clearTimeout(e._t); e._t=setTimeout(()=>e.classList.remove('show'), act?7000:err?4200:2400);
+}
+function toastAct(){ const a=window._ta; window._ta=null; $('#toast').classList.remove('show'); if(a) a.fn() }
 async function api(path, body){
   const r = await fetch(path, body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   return r.json();
@@ -370,12 +431,19 @@ function homeView(){
   const seg = MODES.map(([k,l,i])=>`<button class="${mode===k?'on':''}" onclick="saveSettings({mode:'${k}'})" title="${k==='auto'?'Pick the best profile per file':k==='qpaper'?'Exported exam papers: questions, options, answer key':'Any PDF: headings, lists, tables, figures'}">${ic(i,'sm')}${l}</button>`).join('');
   const files = S.pending.map((f,i)=>`<span class="fchip">${ic('doc','sm')}${esc(f.name)} <small>${fmtSize(f.size)}</small><button class="x" title="Remove" onclick="event.stopPropagation();S.pending.splice(${i},1);render(true)"><svg class="i sm"><use href="#i-x"/></svg></button></span>`).join('');
   const isQ = f => ['queued','processing'].includes(f.status);
-  const isA = f => f.status==='error'||f.status==='new'||(f.warnings&&f.warnings.length);
-  const counts = {all:S.files.length, queue:S.files.filter(isQ).length, done:S.files.filter(f=>f.status==='done').length, review:S.files.filter(isA).length};
-  const tabs = [['all','All'],['queue','Queue'],['done','Done'],['review','Needs attention']]
+  const isT = f => f.status==='new'||f.status==='error';
+  const run=S.files.filter(isQ), todo=S.files.filter(isT), fin=S.files.filter(f=>f.status==='done');
+  const counts = {all:S.files.length, new:todo.length, queue:run.length, done:fin.length};
+  const tabs = [['all','All'],['new','To extract'],['queue','In progress'],['done','Extracted']]
     .map(([k,l])=>`<button class="tab ${S.tab===k?'on':''}" onclick="setTab('${k}')">${l}${counts[k]?`<span class="n">${counts[k]}</span>`:''}</button>`).join('');
-  const list = S.files.filter(f => S.tab==='all' || (S.tab==='queue'&&isQ(f)) || (S.tab==='done'&&f.status==='done') || (S.tab==='review'&&isA(f)));
-  const rows = list.length ? list.map(itemRow).join('') : `<div class="empty">${ic('inbox')}${S.tab==='all'?'No files yet. Drop PDFs above, or copy them into the inbox folder and choose “Rescan inbox”.':'Nothing here right now.'}</div>`;
+  const sec = (cls,title,desc,items,action) => items.length ? `<div class="sec ${cls}"><div class="sec-h"><div><b>${title}</b><span class="n">${items.length}</span><small>${desc}</small></div>${action||''}</div><div class="list">${items.map(itemRow).join('')}</div></div>` : '';
+  const show = k => S.tab==='all' || S.tab===k;
+  let rows = (show('queue') ? sec('run','Extracting now','Processed one at a time, in order.',run) : '')
+    + (show('new') ? sec('todo','Waiting to be extracted','Uploaded but not extracted yet, or failed. Click a file or Extract to start.',todo,
+        `<button class="xbtn" onclick="convert(S.files.filter(f=>f.status==='new'||f.status==='error').map(f=>f.name))">${ic('play','sm')}Extract all ${todo.length}</button>`) : '')
+    + (show('done') ? sec('fin','Extracted','Ready to open, review and download.',fin,
+        `<button class="btn" onclick="go('files')">${ic('files','sm')}Organise in File manager</button>`) : '');
+  if(!rows) rows = `<div class="empty">${ic('inbox')}${S.tab==='all'?'No files yet. Drop PDFs above, or copy them into the inbox folder and choose “Rescan inbox”.':'Nothing here right now.'}</div>`;
   const l = L();
   const lim = [l.max_files?`up to ${l.max_files} files per batch`:'', l.max_mb?`${l.max_mb} MB`:'', l.max_pages?`${l.max_pages} pages per file`:''].filter(Boolean).join(' · ');
   return `
@@ -395,12 +463,13 @@ function homeView(){
           ${chips}
           <button class="go ${S.pending.length?'ready':''}" title="${S.pending.length?'Extract':'Add files first'}" onclick="startUpload()">${ic('up')}</button>
         </div>
+        ${S.pending.length?`<div class="hint">${ic('alert','sm')} ${S.pending.length} file${S.pending.length>1?'s':''} selected but not uploaded yet. Press the arrow to upload and extract.</div>`:''}
         <div class="progress" id="prog"><div></div></div>
       </div>
     </div>
     <div class="hint">${ic('shield','sm')} Limits: ${lim || 'none'} <a href="#" onclick="go('settings');return false" style="color:var(--mute)">change</a></div>
     <div class="tabs">${tabs}</div>
-    <div class="list">${rows}</div>
+    ${rows}
   </div>`;
 }
 function itemRow(f){
@@ -415,13 +484,16 @@ function itemRow(f){
     const o=f.outputs; const qn=o.reduce((a,x)=>a+(x.questions||0),0);
     const st=o[0].stats; const blocks = st ? Object.values(st).reduce((a,b)=>a+b,0) : 0;
     sub = esc(o.map(x=>x.title).join(' + ')) + ' · ' + (f.profile==='qpaper' ? `${qn} questions` : `${blocks} blocks`);
-  } else sub = f.error ? esc(f.error) : fmtSize(f.size);
+  } else sub = f.error ? esc(f.error) : fmtSize(f.size) + (f.status==='new' ? ' · not extracted yet' : '');
   const bar = f.status==='processing' && f.progress && f.progress[1] ? `<div class="bar"><div style="width:${Math.round(f.progress[0]/f.progress[1]*100)}%"></div></div>` : '';
   const click = f.status==='done' ? `go('paper','${esc(f.stem)}')` : (f.status==='new'||f.status==='error') ? `convert(['${esc(f.name)}'])` : '';
+  const todo = f.status==='new'||f.status==='error';
+  const fo = lib().assign[f.name]; const folderB = fo ? `<span class="badge folder" title="Folder">${ic('folder','sm')}${esc(fo)}</span>` : '';
+  const trash = `<button class="mini danger" title="Delete" onclick="event.stopPropagation();del('${esc(f.name)}')">${ic('trash','sm')}</button>`;
   const acts = f.status==='queued' ? `<button class="mini" title="Cancel" onclick="event.stopPropagation();cancelJob('${esc(f.name)}')">${ic('stop','sm')}</button>`
-    : f.status==='processing' ? '' : `${f.status!=='done'?`<button class="mini" title="Extract" onclick="event.stopPropagation();convert(['${esc(f.name)}'])">${ic('play','sm')}</button>`:''}<button class="mini danger" title="Remove" onclick="event.stopPropagation();del('${esc(f.name)}')">${ic('trash','sm')}</button>`;
-  return `<div class="item" onclick="${click}" title="${f.status==='done'?'Open':f.status==='new'||f.status==='error'?'Extract':''}">
-    ${ic('arrow','arr')}<div style="min-width:0;flex:1;padding-right:56px"><div class="row" style="flex-wrap:nowrap;gap:6px"><span class="nm">${esc(f.name)}</span>${fid||badge}${kind}</div><div class="meta nm">${sub}</div>${bar}</div><div class="acts">${acts}</div></div>`;
+    : f.status==='processing' ? '' : (todo ? `<button class="xbtn" onclick="event.stopPropagation();convert(['${esc(f.name)}'])">${ic('play','sm')}${f.status==='error'?'Retry':'Extract'}</button>` : '') + trash;
+  return `<div class="item ${todo?'todo':''}" onclick="${click}" title="${f.status==='done'?'Open':todo?'Extract':''}">
+    ${ic(todo?'doc':'arrow','arr')}<div style="min-width:0;flex:1;padding-right:${todo?130:56}px"><div class="row" style="flex-wrap:nowrap;gap:6px"><span class="nm">${esc(f.name)}</span>${fid||badge}${kind}${folderB}</div><div class="meta nm">${sub}</div>${bar}</div><div class="acts ${todo?'show':''}">${acts}</div></div>`;
 }
 const VERDICT = {verified:['Verified','check'], minor:['Minor differences','alert'], review:['Needs review','alert'], unverifiable:['Not verifiable','shield']};
 function fidBadge(a){
@@ -447,10 +519,11 @@ function addFiles(list){
   if(S.view!=='home') go('home'); else render(true);
 }
 let dragDepth = 0;
-document.addEventListener('dragenter', e => { e.preventDefault(); dragDepth++; const c=$('#card'); c&&c.classList.add('drag') });
+const hasFiles = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+document.addEventListener('dragenter', e => { e.preventDefault(); if(!hasFiles(e)) return; dragDepth++; const c=$('#card'); c&&c.classList.add('drag') });
 document.addEventListener('dragover', e => e.preventDefault());
-document.addEventListener('dragleave', () => { if(--dragDepth<=0){ dragDepth=0; const c=$('#card'); c&&c.classList.remove('drag') } });
-document.addEventListener('drop', e => { e.preventDefault(); dragDepth=0; const c=$('#card'); c&&c.classList.remove('drag'); addFiles(e.dataTransfer.files) });
+document.addEventListener('dragleave', e => { if(!hasFiles(e)) return; if(--dragDepth<=0){ dragDepth=0; const c=$('#card'); c&&c.classList.remove('drag') } });
+document.addEventListener('drop', e => { e.preventDefault(); dragDepth=0; const c=$('#card'); c&&c.classList.remove('drag'); if(hasFiles(e) && e.dataTransfer.files.length) addFiles(e.dataTransfer.files) });
 
 async function startUpload(){
   if(!S.pending.length || S.uploading) return pick();
@@ -588,7 +661,10 @@ function reextract(name){
   convert([name], {[name]: opts}); toast('Re-extracting');
   const wait=setInterval(()=>{ const f=S.files.find(x=>x.name===name); if(f&&['done','error'].includes(f.status)&&!S.pendingN){ clearInterval(wait); render(true); f.status==='done'?toast('Updated'):toast(f.error||'Failed',true) } }, 700);
 }
-async function del(name){ if(!confirm('Remove '+name+' and its outputs?')) return; const r=await api('/api/delete',{name}); if(r.error) return toast(r.error,true); if(S.view==='paper') go('home'); refresh() }
+async function del(name){
+  const ok = await ask({title:'Delete this file?', msg:`<b>${esc(name)}</b> and its extracted outputs will be removed. This can’t be undone.`, ok:'Delete', danger:true});
+  if(!ok) return; const r=await api('/api/delete',{name}); if(r.error) return toast(r.error,true); if(S.view==='paper') go('home'); refresh()
+}
 
 /* ---------------- settings ---------------- */
 function settingsView(){
@@ -632,87 +708,320 @@ async function saveLimits(){
   await saveSettings({limits:lim}); toast('Limits saved');
 }
 
+/* ---------------- dialogs, context menu ---------------- */
+let modalState = null;
+function closeModal(v){
+  const m = modalState; modalState = null;
+  $('#modal-root').innerHTML = '';
+  document.removeEventListener('keydown', modalKey, true);
+  if(m) m.resolve(v);
+}
+function modalKey(e){
+  if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); closeModal(null) }
+  else if(e.key==='Enter' && modalState && modalState.enter && e.target.tagName!=='BUTTON'){ e.preventDefault(); e.stopPropagation(); modalState.enter() }
+}
+function paintModal(){
+  $('#modal-root').innerHTML = `<div class="modal" onmousedown="if(event.target===this)closeModal(null)"><div class="mbox" role="dialog" aria-modal="true">${modalState.fn()}</div></div>`;
+  const a = $('#modal-root [autofocus]'); if(a){ a.focus(); if(a.select) a.select() }
+  if(modalState.after) modalState.after();
+}
+function showModal(fn, enter, after){
+  if(modalState) closeModal(null);
+  return new Promise(resolve => {
+    modalState = {resolve, fn, enter, after};
+    paintModal();
+    document.addEventListener('keydown', modalKey, true);
+  });
+}
+function ask({title, msg='', input=false, value='', ok='OK', danger=false, placeholder='', validate, selectStem=false}){
+  const st = {val:value, err:''};
+  const submit = () => {
+    if(!input) return closeModal(true);
+    const v = ($('#dlg-in').value || '').trim();
+    const err = !v ? 'Please enter a name.' : (validate && validate(v)) || '';
+    if(err){ st.val = $('#dlg-in').value; st.err = err; paintModal(); return }
+    closeModal(v);
+  };
+  const after = () => {
+    const el = $('#dlg-in'); if(!el) return;
+    if(selectStem && !st.err){ const i = st.val.lastIndexOf('.'); el.setSelectionRange(0, i > 0 ? i : st.val.length) }
+  };
+  return showModal(() => `<h2>${esc(title)}</h2>${msg ? `<p>${msg}</p>` : ''}
+    ${input ? `<input id="dlg-in" class="dlg-in" autofocus value="${esc(st.val)}" placeholder="${esc(placeholder)}" autocomplete="off" spellcheck="false">` : ''}
+    ${st.err ? `<div class="dlg-err">${esc(st.err)}</div>` : ''}
+    <div class="mact"><button class="btn" onclick="closeModal(null)">Cancel</button><button class="btn ${danger?'dangerfill':'pri'}" ${input?'':'autofocus'} onclick="modalState.enter()">${esc(ok)}</button></div>`,
+    submit, after);
+}
+function pickFolder(names, current){
+  const L2 = lib(); const st = {sel: undefined, nw: '', err: ''};
+  const cnt = k => S.files.filter(f => k==='' ? !L2.assign[f.name] : L2.assign[f.name]===k).length;
+  const row = (k, label, icon) => `<button class="pfrow ${st.sel===k?'on':''}" data-k="${esc(k)}" onclick="pfSel(this.dataset.k)" ondblclick="modalState.enter()">${ic(icon,'sm')}<span>${esc(label)}</span>${current===k?'<span class="n">current</span>':`<span class="n">${cnt(k)}</span>`}</button>`;
+  window.pfSel = k => { st.sel = k; $$('#modal-root .pfrow').forEach(r => r.classList.toggle('on', r.dataset.k===k || (k===undefined && false))); const nr=$('#pf-new'); if(nr) nr.classList.toggle('on', k===NEW) };
+  const NEW = '\u0000new';
+  const submit = () => {
+    if(st.sel===undefined) { st.err = 'Pick a destination.'; return paintModal() }
+    if(st.sel===NEW){
+      const v = ($('#pf-in').value||'').trim(); st.nw = v;
+      const err = !v ? 'Name the new folder.' : folderErr(v); if(err){ st.err = err; st.sel = NEW; return paintModal() }
+      return closeModal(v);
+    }
+    closeModal(st.sel);
+  };
+  const n = names.length;
+  return showModal(() => `<h2>Move ${n} file${n>1?'s':''}</h2><p>Choose a destination folder.</p>
+    <div class="pf">${row('', 'Unfiled (no folder)', 'inbox')}${L2.folders.map(f=>row(f,f,'folder')).join('')}
+      <div class="pfrow ${st.sel===NEW?'on':''}" id="pf-new" onclick="pfSel(NEW_K);$('#pf-in').focus()">${ic('plus','sm')}<input id="pf-in" placeholder="New folder…" value="${esc(st.nw)}" autocomplete="off" spellcheck="false" onfocus="pfSel(NEW_K)" oninput="pfSel(NEW_K)"></div></div>
+    ${st.err?`<div class="dlg-err">${esc(st.err)}</div>`:''}
+    <div class="mact"><button class="btn" onclick="closeModal(null)">Cancel</button><button class="btn pri" onclick="modalState.enter()">${ic('folder','sm')}Move here</button></div>`,
+    submit, () => { window.NEW_K = NEW; if(st.sel===NEW && st.err){ const i=$('#pf-in'); i&&i.focus() } });
+}
+const $$ = s => [...document.querySelectorAll(s)];
+function folderErr(v, self){
+  if(/[\\/:*?"<>|]/.test(v)) return 'Folder names can’t contain \\ / : * ? " < > |';
+  if(lib().folders.some(f => f.toLowerCase()===v.toLowerCase() && f!==self)) return 'A folder with that name already exists.';
+  return '';
+}
+let ctxItems = [];
+function ctxMenu(e, items){
+  e.preventDefault(); e.stopPropagation();
+  const m = $('#ctx'); ctxItems = items.filter(Boolean);
+  m.innerHTML = ctxItems.map((it,i) => it==='-' ? '<div class="sep"></div>' :
+    `<button class="${it.danger?'danger':''}" ${it.dis?'disabled':''} onclick="ctxRun(${i})">${ic(it.icon,'sm')}${esc(it.label)}${it.key?`<kbd>${it.key}</kbd>`:''}</button>`).join('');
+  m.style.display = 'block';
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.min(e.clientX, innerWidth - r.width - 8) + 'px';
+  m.style.top = Math.min(e.clientY, innerHeight - r.height - 8) + 'px';
+}
+function ctxClose(){ const m=$('#ctx'); if(m) m.style.display='none' }
+function ctxRun(i){ ctxClose(); const it = ctxItems[i]; if(it && it.run) it.run() }
+document.addEventListener('click', ctxClose);
+document.addEventListener('scroll', ctxClose, true);
+window.addEventListener('blur', ctxClose);
+
 /* ---------------- file manager ---------------- */
-const FM = {folder:'*', sel:new Set(), q:'', sort:'date', dlOpen:false, dlFmts:['md','docx','pdf'], dlSource:false, dlLayout:'folders', dlScope:'sel', vis:[], moveOpen:false};
+const FM = {folder:'*', sel:new Set(), anchor:null, q:'', sort:'date', vis:[], dragNames:null,
+  dlFmts:['md','docx','pdf'], dlSource:false, dlLayout:'folders', dlAll:false, dlNames:[], dlLabel:''};
 const DL_KINDS = [['md','Markdown','.md'],['md_zip','Markdown + images','.zip'],['docx','Word','.docx'],['pdf','PDF','.pdf'],['json','JSON','.json'],['html','HTML','.html'],['audit_pdf','Audit overlay','.pdf']];
 const lib = () => S.library || {folders:[], assign:{}};
+const plural = (n, w) => `${n} ${w}${n===1?'':'s'}`;
+function fmInFolder(f, k){ return k==='*' || (k==='' ? !lib().assign[f.name] : lib().assign[f.name]===k) }
 function fmVisible(){
-  const L2=lib(), q=FM.q.toLowerCase();
-  let v = S.files.filter(f => FM.folder==='*' || (FM.folder==='' ? !L2.assign[f.name] : L2.assign[f.name]===FM.folder));
+  const q = FM.q.toLowerCase();
+  let v = S.files.filter(f => fmInFolder(f, FM.folder));
   if(q) v = v.filter(f => f.name.toLowerCase().includes(q));
-  const by = {name:(a,b)=>a.name.localeCompare(b.name), size:(a,b)=>b.size-a.size, status:(a,b)=>a.status.localeCompare(b.status), date:()=>0}[FM.sort];
+  const by = {name:(a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}), size:(a,b)=>b.size-a.size, status:(a,b)=>a.status.localeCompare(b.status), date:()=>0}[FM.sort];
   return [...v].sort(by);
 }
+const ST_LABEL = {new:'Not extracted',queued:'Queued',processing:'Extracting',error:'Failed',done:'Extracted'};
 function filesView(){
-  const L2=lib(), vis=FM.vis=fmVisible();
-  const cnt = k => S.files.filter(f => k==='*' ? true : k==='' ? !L2.assign[f.name] : L2.assign[f.name]===k).length;
-  const fl = (k,label,icon,acts='') => `<div class="fld ${FM.folder===k?'on':''}" onclick="FM.folder=${JSON.stringify(k).replace(/"/g,'&quot;')};render(true)" ${k!=='*'?`ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="fmDrop(event,${JSON.stringify(k).replace(/"/g,'&quot;')})"`:''}>${ic(icon,'sm')}<span class="nm2">${esc(label)}</span><span class="n">${cnt(k)}</span>${acts}</div>`;
-  const folders = L2.folders.map((f,i)=>fl(f,f,'folder',`<span class="fa"><button class="mini" title="Rename" onclick="event.stopPropagation();fmRenameFolder(${i})">${ic('edit','sm')}</button><button class="mini danger" title="Delete folder (files are kept)" onclick="event.stopPropagation();fmDeleteFolder(${i})">${ic('trash','sm')}</button></span>`)).join('');
-  const sel=[...FM.sel].filter(n=>S.files.some(f=>f.name===n)); const nsel=sel.length;
-  const allOn = vis.length && vis.every(f=>FM.sel.has(f.name));
-  const title = FM.folder==='*'?'All files':FM.folder===''?'Unfiled':FM.folder;
-  const rows = vis.map((f,i)=>{
-    const fo = L2.assign[f.name]; const st = ({new:'Not extracted',queued:'Queued',processing:'Extracting',error:'Failed',done:'Ready'})[f.status]||f.status;
-    return `<div class="fr ${FM.sel.has(f.name)?'sel':''}" draggable="true" ondragstart="fmDrag(event,${i})">
-      <input type="checkbox" ${FM.sel.has(f.name)?'checked':''} onchange="fmToggle(${i})">
-      <span class="nm" onclick="fmOpen(${i})" title="${esc(f.name)}">${esc(f.name)}</span>
-      <span class="c">${fo?ic('folder','sm')+' '+esc(fo):'—'}</span><span class="c">${fmtSize(f.size)}</span>
-      <span><span class="badge ${f.status}">${st}</span></span>
-      <span class="rowacts"><button class="mini" title="Rename" onclick="fmRename(${i})">${ic('edit','sm')}</button><button class="mini danger" title="Delete" onclick="fmDelete([${JSON.stringify(f.name).replace(/"/g,'&quot;')}])">${ic('trash','sm')}</button></span></div>`}).join('');
-  const dis = nsel?'':'disabled';
-  const dl = FM.dlOpen ? `<div class="modal" onclick="if(event.target===this){FM.dlOpen=false;render(true)}"><div class="mbox"><h2>Download</h2><p>Pick what goes into the zip.</p>
-    <div class="lbl">Files</div><div class="row"><button class="chip ${FM.dlScope==='sel'?'on':''}" ${nsel?'':'disabled'} onclick="FM.dlScope='sel';render(true)">Selected (${nsel})</button><button class="chip ${FM.dlScope==='view'?'on':''}" onclick="FM.dlScope='view';render(true)">This view (${vis.length})</button><button class="chip ${FM.dlScope==='all'?'on':''}" onclick="FM.dlScope='all';render(true)">Everything (${S.files.length})</button></div>
-    <div class="lbl">Formats</div><div class="row">${DL_KINDS.map(([k,l,e])=>`<button class="chip ${FM.dlFmts.includes(k)?'on':''}" onclick="fmFmt('${k}')">${l} <small>${e}</small></button>`).join('')}<button class="chip ${FM.dlSource?'on':''}" onclick="FM.dlSource=!FM.dlSource;render(true)">Original PDF</button></div>
-    <div class="lbl">Layout</div><div class="row"><button class="chip ${FM.dlLayout==='folders'?'on':''}" onclick="FM.dlLayout='folders';render(true)">Keep my folders</button><button class="chip ${FM.dlLayout==='flat'?'on':''}" onclick="FM.dlLayout='flat';render(true)">One flat folder</button></div>
-    <div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn" onclick="FM.dlOpen=false;render(true)">Cancel</button><button class="btn pri" onclick="fmDownload()">${ic('dl','sm')}Download .zip</button></div></div></div>` : '';
+  const L2 = lib(), vis = FM.vis = fmVisible();
+  const cnt = k => S.files.filter(f => fmInFolder(f,k)).length;
+  const drop = k => `ondragover="fmOver(event,this)" ondragleave="this.classList.remove('over')" ondrop="fmDrop(event,this)"`;
+  const sideRow = (k, label, icon, ctx) => `<div class="fld ${FM.folder===k?'on':''}" data-f="${esc(k)}" onclick="fmGo(this.dataset.f)" ${k!=='*'?drop():''} ${ctx||''}>${ic(icon,'sm')}<span class="nm2">${esc(label)}</span><span class="n">${cnt(k)}</span></div>`;
+  const side = L2.folders.map((f,i)=>sideRow(f,f,'folder',`oncontextmenu="fmFolderCtx(event,${i})"`)).join('');
+  const sel = fmSelNames(), nsel = sel.length;
+  const selBytes = S.files.filter(f=>FM.sel.has(f.name)).reduce((a,f)=>a+f.size,0);
+  const allOn = vis.length && vis.every(f => FM.sel.has(f.name));
+  const crumb = FM.folder==='*' ? `<span class="cur">All files</span>`
+    : `<button onclick="fmGo('*')">All files</button><span class="sepc">›</span><span class="cur">${esc(FM.folder===''?'Unfiled':FM.folder)}</span>`;
+  const tiles = (FM.folder==='*' && !FM.q && L2.folders.length) ? `<div class="lbl2">Folders</div><div class="tiles">${L2.folders.map((f,i)=>
+    `<div class="tile" data-f="${esc(f)}" onclick="fmGo(this.dataset.f)" ${drop()} oncontextmenu="fmFolderCtx(event,${i})">${ic('folder')}<div><b>${esc(f)}</b><small>${plural(cnt(f),'file')}</small></div></div>`).join('')}</div><div class="lbl2">Files</div>` : '';
+  const rows = vis.map((f,i) => {
+    const fo = L2.assign[f.name];
+    return `<div class="fr ${FM.sel.has(f.name)?'sel':''}" data-i="${i}" draggable="true" ondragstart="fmDrag(event,${i})" ondragend="fmDragEnd()" onclick="fmRowClick(event,${i})" ondblclick="fmOpen(${i})" oncontextmenu="fmRowCtx(event,${i})">
+      <input type="checkbox" ${FM.sel.has(f.name)?'checked':''} onclick="event.stopPropagation();fmToggle(${i})">
+      <span class="nm" title="${esc(f.name)}">${ic('doc','sm')}<span>${esc(f.name)}</span></span>
+      <span class="c">${fo?ic('folder','sm')+'<span>'+esc(fo)+'</span>':'—'}</span><span class="c">${fmtSize(f.size)}</span>
+      <span><span class="badge ${f.status}">${ST_LABEL[f.status]||f.status}</span></span>
+      <span class="rowacts"><button class="mini" title="Rename (F2)" onclick="event.stopPropagation();fmRename(${i})">${ic('edit','sm')}</button><button class="mini danger" title="Delete" onclick="event.stopPropagation();fmDelete([FM.vis[${i}].name])">${ic('trash','sm')}</button></span></div>`;
+  }).join('');
+  const dis = nsel ? '' : 'disabled';
+  const empty = FM.q ? `${ic('library')}<b>No matches</b><span>Nothing named “${esc(FM.q)}” here.</span>`
+    : FM.folder==='*' ? `${ic('inbox')}<b>No files yet</b><button class="btn pri" onclick="go('home');pick()">${ic('up','sm')}Upload PDFs</button>`
+    : `${ic('folder')}<b>This folder is empty</b><span>Drag files here from the list, or select files and choose “Move to…”.</span>`;
   return `<div class="fm">
-    <div class="fm-side"><h3>Library</h3>${fl('*','All files','library')}${fl('','Unfiled','inbox')}<h3 style="margin-top:20px">Folders<button title="New folder" onclick="fmNewFolder()">${ic('plus','sm')}</button></h3>${folders||'<div class="meta" style="padding:4px 10px;color:var(--dim)">No folders yet</div>'}</div>
+    <div class="fm-side"><h3>Library</h3>${sideRow('*','All files','library')}${sideRow('','Unfiled','inbox')}
+      <h3 style="margin-top:22px">Folders<button title="New folder" onclick="fmNewFolder()">${ic('plus','sm')}</button></h3>
+      ${side || '<div style="padding:4px 10px;color:var(--dim);font-size:12.5px">No folders yet. Create one with +, then drag files into it.</div>'}</div>
     <div class="fm-main">
-      <div class="fm-bar"><h2>${esc(title)}</h2><input type="search" id="fm-q" placeholder="Search files" value="${esc(FM.q)}" oninput="FM.q=this.value;render(true);const e=$('#fm-q');e.focus();e.setSelectionRange(99,99)">
-        <select onchange="FM.sort=this.value;render(true)">${[['date','Newest'],['name','Name'],['size','Size'],['status','Status']].map(([k,l])=>`<option value="${k}" ${FM.sort===k?'selected':''}>${l}</option>`).join('')}</select>
-        <span style="flex:1"></span><button class="btn" onclick="fmNewFolder()">${ic('plus','sm')}New folder</button><button class="btn" onclick="go('home');pick()">${ic('up','sm')}Upload</button><button class="btn pri" onclick="FM.dlScope=${nsel}?'sel':'all';FM.dlOpen=true;render(true)">${ic('dl','sm')}Download…</button></div>
-      <div class="fm-sel"><span class="cnt">${nsel?nsel+' selected':'Select files to act on them'}</span>
+      <div class="fm-bar"><div class="crumb">${crumb}</div>
+        <input type="search" id="fm-q" placeholder="Search files" value="${esc(FM.q)}" oninput="fmSearch(this)">
+        <select title="Sort" onchange="FM.sort=this.value;render(true)">${[['date','Newest first'],['name','Name'],['size','Size'],['status','Status']].map(([k,l])=>`<option value="${k}" ${FM.sort===k?'selected':''}>${l}</option>`).join('')}</select>
+        <span style="flex:1"></span><button class="btn" onclick="fmNewFolder()">${ic('plus','sm')}New folder</button><button class="btn" onclick="go('home');pick()">${ic('up','sm')}Upload</button>
+        <button class="btn pri" ${vis.length||nsel?'':'disabled'} onclick="fmDownloadDialog(${nsel?'null':'FM.vis.map(f=>f.name)'})">${ic('dl','sm')}Download…</button></div>
+      <div class="fm-sel"><span class="cnt">${nsel?`<b>${nsel}</b> selected · ${fmtSize(selBytes)}`:'Click to select · double-click to open'}</span>
         <button class="btn" ${dis} onclick="fmMove()">${ic('folder','sm')}Move to…</button>
         <button class="btn" ${dis} onclick="fmExtract()">${ic('play','sm')}Extract</button>
         <button class="btn" ${nsel===1?'':'disabled'} onclick="fmRename(-1)">${ic('edit','sm')}Rename</button>
-        <button class="btn danger" ${dis} onclick="fmDelete([...FM.sel])">${ic('trash','sm')}Delete</button>
+        <button class="btn danger" ${dis} onclick="fmDelete(fmSelNames())">${ic('trash','sm')}Delete</button>
         ${nsel?`<button class="btn" onclick="FM.sel.clear();render(true)">Clear</button>`:''}</div>
-      <div class="fm-list"><div class="fr h"><input type="checkbox" ${allOn?'checked':''} onchange="fmAll(this.checked)" title="Select all in view"><span>Name</span><span>Folder</span><span>Size</span><span>Status</span><span></span></div>
-      ${rows||`<div class="empty">${ic('inbox')}No files here.</div>`}</div>
-    </div>${dl}</div>`;
+      <div class="fm-list" onclick="if(event.target===this){FM.sel.clear();render(true)}">${tiles}
+        ${vis.length ? `<div class="fr h"><input type="checkbox" ${allOn?'checked':''} onchange="fmAll(this.checked)" title="Select all"><span>Name</span><span>Folder</span><span>Size</span><span>Status</span><span></span></div>${rows}` : `<div class="fm-empty">${empty}</div>`}</div>
+    </div></div>`;
 }
-const fmSelNames = () => [...FM.sel].filter(n=>S.files.some(f=>f.name===n));
-function fmToggle(i){ const n=FM.vis[i].name; FM.sel.has(n)?FM.sel.delete(n):FM.sel.add(n); render(true) }
-function fmAll(on){ FM.vis.forEach(f=>on?FM.sel.add(f.name):FM.sel.delete(f.name)); render(true) }
-function fmOpen(i){ const f=FM.vis[i]; if(f.status==='done') go('paper',f.stem); else if(f.status==='new'||f.status==='error') convert([f.name]) }
-function fmFmt(k){ FM.dlFmts = FM.dlFmts.includes(k)?FM.dlFmts.filter(x=>x!==k):[...FM.dlFmts,k]; render(true) }
-function fmDrag(e,i){ const n=FM.vis[i].name; const names = FM.sel.has(n)?fmSelNames():[n]; e.dataTransfer.setData('text/plain', JSON.stringify(names)) }
-async function fmDrop(e,folder){ e.preventDefault(); let names=[]; try{ names=JSON.parse(e.dataTransfer.getData('text/plain')) }catch(_){ return } if(names.length) fmDoMove(names,folder) }
-async function fmDoMove(names,folder){ const r=await api('/api/move',{names,folder}); S.library=r; toast(`Moved ${names.length} file${names.length>1?'s':''}${folder?' to '+folder:' out of folders'}`); render(true) }
-async function fmNewFolder(){ const n=prompt('New folder name'); if(!n||!n.trim()) return; S.library=await api('/api/folder',{action:'create',name:n}); render(true) }
-async function fmRenameFolder(i){ const old=lib().folders[i]; const n=prompt('Rename folder',old); if(!n||!n.trim()||n===old) return; S.library=await api('/api/folder',{action:'rename',name:old,to:n}); if(FM.folder===old) FM.folder=n.trim(); render(true) }
-async function fmDeleteFolder(i){ const f=lib().folders[i]; if(!confirm(`Delete folder “${f}”? Its files are kept and become unfiled.`)) return; S.library=await api('/api/folder',{action:'delete',name:f}); if(FM.folder===f) FM.folder='*'; render(true) }
-async function fmMove(){ const names=fmSelNames(); const opts=lib().folders; const t=prompt('Move to folder (type a name; new names create a folder; empty = unfiled).\nExisting: '+(opts.join(', ')||'none'), FM.folder&&FM.folder!=='*'?FM.folder:''); if(t===null) return; fmDoMove(names,t.trim()) }
+const fmSelNames = () => [...FM.sel].filter(n => S.files.some(f => f.name===n));
+const fmFile = i => FM.vis[i];
+function fmGo(k){ FM.folder = k; FM.sel.clear(); FM.anchor = null; render(true) }
+function fmSearch(el){ const p = el.selectionStart; FM.q = el.value; render(true); const e = $('#fm-q'); e.focus(); e.setSelectionRange(p,p) }
+function fmToggle(i){ const n = fmFile(i).name; FM.sel.has(n) ? FM.sel.delete(n) : FM.sel.add(n); FM.anchor = i; render(true) }
+function fmAll(on){ FM.vis.forEach(f => on ? FM.sel.add(f.name) : FM.sel.delete(f.name)); render(true) }
+function fmRowClick(e, i){
+  if(e.detail>1) return;
+  const n = fmFile(i).name;
+  if(e.shiftKey && FM.anchor!=null){
+    const [a,b] = [Math.min(FM.anchor,i), Math.max(FM.anchor,i)];
+    if(!(e.metaKey||e.ctrlKey)) FM.sel.clear();
+    for(let k=a;k<=b;k++) FM.sel.add(FM.vis[k].name);
+  } else if(e.metaKey || e.ctrlKey){ FM.sel.has(n) ? FM.sel.delete(n) : FM.sel.add(n); FM.anchor = i }
+  else { FM.sel = new Set([n]); FM.anchor = i }
+  render(true);
+}
+function fmOpen(i){ const f = fmFile(i); if(f.status==='done') go('paper', f.stem); else if(f.status==='new'||f.status==='error') convert([f.name]) }
+function fmRowCtx(e, i){
+  const f = fmFile(i);
+  if(!FM.sel.has(f.name)){ FM.sel = new Set([f.name]); FM.anchor = i; render(true) }
+  const n = fmSelNames().length, one = n===1, todo = S.files.some(x=>FM.sel.has(x.name) && (x.status==='new'||x.status==='error'));
+  ctxMenu(e, [
+    one && f.status==='done' ? {label:'Open', icon:'eye', run:()=>go('paper', f.stem)} : null,
+    todo ? {label:'Extract', icon:'play', run:fmExtract} : null,
+    {label:'Move to…', icon:'folder', run:fmMove},
+    {label:one?'Rename':'Rename (select one)', icon:'edit', key:'F2', dis:!one, run:()=>fmRename(-1)},
+    {label:'Download…', icon:'dl', run:()=>fmDownloadDialog(null)},
+    lib().assign[f.name] ? {label:'Remove from folder', icon:'x', run:()=>fmDoMove(fmSelNames(), '')} : null,
+    '-',
+    {label:n>1?`Delete ${n} files`:'Delete', icon:'trash', danger:true, key:'Del', run:()=>fmDelete(fmSelNames())},
+  ]);
+}
+function fmFolderCtx(e, i){
+  const f = lib().folders[i];
+  ctxMenu(e, [
+    {label:'Open', icon:'folder', run:()=>fmGo(f)},
+    {label:'Download folder…', icon:'dl', run:()=>fmDownloadDialog(S.files.filter(x=>lib().assign[x.name]===f).map(x=>x.name))},
+    {label:'Rename', icon:'edit', run:()=>fmRenameFolder(i)},
+    '-',
+    {label:'Delete folder', icon:'trash', danger:true, run:()=>fmDeleteFolder(i)},
+  ]);
+}
+/* drag & drop */
+function fmDrag(e, i){
+  const n = fmFile(i).name;
+  const names = FM.sel.has(n) ? fmSelNames() : [n];
+  FM.dragNames = names;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', names.join('\n'));
+  const g = document.createElement('div'); g.className = 'dragghost'; g.textContent = plural(names.length, 'file'); document.body.appendChild(g);
+  e.dataTransfer.setDragImage(g, 12, 12); setTimeout(() => g.remove(), 0);
+  document.body.classList.add('dragging-fm');
+  $$('.fr[data-i]').forEach(r => { if(names.includes(FM.vis[r.dataset.i].name)) r.classList.add('dragging') });
+}
+function fmDragEnd(){ FM.dragNames = null; document.body.classList.remove('dragging-fm'); $$('.dragging,.over').forEach(r => r.classList.remove('dragging','over')) }
+function fmOver(e, el){ if(!FM.dragNames) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; el.classList.add('over') }
+function fmDrop(e, el){
+  e.preventDefault(); e.stopPropagation();
+  const names = FM.dragNames; const folder = el.dataset.f; fmDragEnd();
+  if(!names || !names.length) return;
+  const todo = names.filter(n => (lib().assign[n]||'') !== folder);
+  if(!todo.length) return toast('Already in that folder');
+  fmDoMove(todo, folder);
+}
+async function fmDoMove(names, folder){
+  const prev = Object.fromEntries(names.map(n => [n, lib().assign[n] || '']));
+  const r = await api('/api/move', {names, folder}); S.library = r;
+  const label = folder ? `“${folder}”` : 'Unfiled';
+  toast(`Moved ${plural(names.length,'file')} to ${label}`, false, {label:'Undo', fn: async () => {
+    const by = {}; for(const [n,f] of Object.entries(prev)) (by[f] = by[f] || []).push(n);
+    for(const [f,ns] of Object.entries(by)) S.library = await api('/api/move', {names:ns, folder:f});
+    render(true);
+  }});
+  render(true);
+}
+/* actions */
+async function fmNewFolder(){
+  const n = await ask({title:'New folder', input:true, ok:'Create', placeholder:'Folder name', validate:v=>folderErr(v)});
+  if(!n) return;
+  S.library = await api('/api/folder', {action:'create', name:n}); FM.folder = n; FM.sel.clear(); render(true);
+}
+async function fmRenameFolder(i){
+  const old = lib().folders[i];
+  const n = await ask({title:'Rename folder', input:true, value:old, ok:'Rename', validate:v=>folderErr(v, old)});
+  if(!n || n===old) return;
+  S.library = await api('/api/folder', {action:'rename', name:old, to:n}); if(FM.folder===old) FM.folder = n; render(true);
+}
+async function fmDeleteFolder(i){
+  const f = lib().folders[i]; const c = S.files.filter(x => lib().assign[x.name]===f).length;
+  const ok = await ask({title:`Delete folder “${f}”?`, msg:c ? `The ${plural(c,'file')} inside won’t be deleted. They’ll move to Unfiled.` : 'This folder is empty.', ok:'Delete folder', danger:true});
+  if(!ok) return;
+  S.library = await api('/api/folder', {action:'delete', name:f}); if(FM.folder===f) FM.folder = '*'; render(true);
+}
+async function fmMove(){
+  const names = fmSelNames(); if(!names.length) return;
+  const cur = new Set(names.map(n => lib().assign[n] || '')); 
+  const dest = await pickFolder(names, cur.size===1 ? [...cur][0] : null);
+  if(dest===null || dest===undefined) return;
+  fmDoMove(names, dest);
+}
 async function fmRename(i){
-  const f = i<0 ? S.files.find(x=>x.name===fmSelNames()[0]) : FM.vis[i]; if(!f) return;
-  const n=prompt('Rename file', f.name); if(!n||n.trim()===f.name) return;
-  const r=await api('/api/rename',{name:f.name,to:n.trim()}); if(r.error) return toast(r.error,true);
-  FM.sel.delete(f.name); toast('Renamed'); refresh();
+  const f = i<0 ? S.files.find(x => x.name===fmSelNames()[0]) : fmFile(i); if(!f) return;
+  const n = await ask({title:'Rename file', msg:'The extracted outputs are renamed with it.', input:true, value:f.name, ok:'Rename', selectStem:true,
+    validate: v => { const t = /\.pdf$/i.test(v) ? v : v+'.pdf'; if(/[\\/:*?"<>|]/.test(v)) return 'Names can’t contain \\ / : * ? " < > |';
+      return S.files.some(x => x.name.toLowerCase()===t.toLowerCase() && x.name!==f.name) ? 'A file with that name already exists.' : '' }});
+  if(!n) return;
+  const r = await api('/api/rename', {name:f.name, to:n}); if(r.error) return toast(r.error, true);
+  FM.sel = new Set([r.name]); toast('Renamed'); refresh();
 }
-async function fmDelete(names){ if(!names.length||!confirm(`Delete ${names.length} file${names.length>1?'s':''} and their outputs? This cannot be undone.`)) return;
-  const r=await api('/api/delete-many',{names}); names.forEach(n=>FM.sel.delete(n)); if(r.busy&&r.busy.length) toast(`${r.busy.length} skipped (being processed)`,true); else toast(`Deleted ${r.deleted.length}`); refresh() }
-function fmExtract(){ const names=fmSelNames(); if(names.length) convert(names) }
-function fmDownload(){
-  const names = FM.dlScope==='sel'?fmSelNames():FM.dlScope==='view'?FM.vis.map(f=>f.name):S.files.map(f=>f.name);
-  if(!names.length) return toast('No files to download',true);
-  if(!FM.dlFmts.length && !FM.dlSource) return toast('Choose at least one format',true);
-  const u=`/api/export?names=${encodeURIComponent(names.join('\n'))}&formats=${FM.dlFmts.join(',')}&source=${FM.dlSource?1:0}&layout=${FM.dlLayout}`;
-  FM.dlOpen=false; render(true); location.href=u; toast('Preparing zip…');
+async function fmDelete(names){
+  if(!names.length) return;
+  const ok = await ask({title:`Delete ${plural(names.length,'file')}?`, ok:'Delete', danger:true,
+    msg: names.length===1 ? `<b>${esc(names[0])}</b> and its extracted outputs will be removed. This can’t be undone.` : `These files and their extracted outputs will be removed. This can’t be undone.`});
+  if(!ok) return;
+  const r = await api('/api/delete-many', {names}); names.forEach(n => FM.sel.delete(n));
+  if(r.busy && r.busy.length) toast(`${r.busy.length} skipped (being extracted right now)`, true); else toast(`Deleted ${plural(r.deleted.length,'file')}`);
+  refresh();
 }
+function fmExtract(){ const names = fmSelNames(); if(names.length) convert(names) }
+function fmFmt(k){ FM.dlFmts = FM.dlFmts.includes(k) ? FM.dlFmts.filter(x=>x!==k) : [...FM.dlFmts,k]; paintModal() }
+function fmDownloadDialog(names){
+  const sel = fmSelNames();
+  FM.dlNames = names || sel; FM.dlAll = false;
+  FM.dlLabel = names ? 'These files' : 'Selected files';
+  if(!FM.dlNames.length) return toast('Nothing to download', true);
+  showModal(() => {
+    const list = FM.dlAll ? S.files.map(f=>f.name) : FM.dlNames;
+    const ready = S.files.filter(f => list.includes(f.name) && f.status==='done').length, notReady = list.length - ready;
+    return `<h2>Download</h2><p>Everything is bundled into one zip.</p>
+    <div class="lbl">Files</div><div class="row"><button class="chip ${!FM.dlAll?'on':''}" onclick="FM.dlAll=false;paintModal()">${FM.dlLabel} (${FM.dlNames.length})</button><button class="chip ${FM.dlAll?'on':''}" onclick="FM.dlAll=true;paintModal()">Everything (${S.files.length})</button></div>
+    <div class="lbl">Formats</div><div class="row">${DL_KINDS.map(([k,l,e])=>`<button class="chip ${FM.dlFmts.includes(k)?'on':''}" onclick="fmFmt('${k}')">${l} <small>${e}</small></button>`).join('')}<button class="chip ${FM.dlSource?'on':''}" onclick="FM.dlSource=!FM.dlSource;paintModal()">Original PDF</button></div>
+    <div class="lbl">Layout</div><div class="row"><button class="chip ${FM.dlLayout==='folders'?'on':''}" onclick="FM.dlLayout='folders';paintModal()">Keep my folders</button><button class="chip ${FM.dlLayout==='flat'?'on':''}" onclick="FM.dlLayout='flat';paintModal()">One flat folder</button></div>
+    ${notReady && FM.dlFmts.length ? `<div class="hint" style="margin-top:14px;color:var(--warn)">${ic('alert','sm')}${plural(notReady,'file')} not extracted yet. ${FM.dlSource?'Only the original PDF will be included for them.':'They will be left out.'}</div>`:''}
+    <div class="mact"><button class="btn" onclick="closeModal(null)">Cancel</button><button class="btn pri" onclick="modalState.enter()">${ic('dl','sm')}Download .zip</button></div>`;
+  }, () => closeModal(true)).then(ok => { if(ok) fmDownload() });
+}
+async function fmDownload(){
+  const names = FM.dlAll ? S.files.map(f=>f.name) : FM.dlNames;
+  if(!FM.dlFmts.length && !FM.dlSource) return toast('Choose at least one format', true);
+  toast('Preparing zip…');
+  try{
+    const r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({names, formats:FM.dlFmts, source:FM.dlSource, layout:FM.dlLayout})});
+    if(!r.ok){ const j = await r.json().catch(()=>({})); return toast(j.error || 'Download failed', true) }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(await r.blob()); a.download = 'paperlift_export.zip';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 20000);
+    toast('Download started');
+  }catch(e){ toast('Download failed', true) }
+}
+document.addEventListener('keydown', e => {
+  if(S.view!=='files' || modalState || ['INPUT','SELECT','TEXTAREA'].includes((e.target||{}).tagName)) return;
+  const n = fmSelNames();
+  if((e.key==='Delete'||e.key==='Backspace') && n.length){ e.preventDefault(); fmDelete(n) }
+  else if(e.key==='F2' && n.length===1){ e.preventDefault(); fmRename(-1) }
+  else if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='a'){ e.preventDefault(); fmAll(true) }
+  else if(e.key==='Escape' && n.length){ FM.sel.clear(); render(true) }
+  else if(e.key==='Enter' && n.length===1){ const i = FM.vis.findIndex(f=>f.name===n[0]); if(i>=0) fmOpen(i) }
+});
 
 /* ---------------- render ---------------- */
 let lastKey='';
 function render(force){
+  if(FM.dragNames && !force) return;
   ['home','files','settings'].forEach(v=>$('#nav-'+v).classList.toggle('on', S.view===v && !(v==='home'&&S.tab==='queue')));
   $('#nav-queue').classList.toggle('on', S.view==='home' && S.tab==='queue');
   if((S.view==='settings'||S.view==='files') && !force && document.activeElement && document.activeElement.tagName==='INPUT') return;
