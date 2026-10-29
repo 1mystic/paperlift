@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="../../actions/workflows/ci.yml"><img alt="CI" src="../../actions/workflows/ci.yml/badge.svg"></a>
-  <img alt="Platforms" src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey">
+  <img alt="Platforms" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20browser-lightgrey">
   <img alt="Python" src="https://img.shields.io/badge/python-3.9%2B-blue">
   <img alt="License" src="https://img.shields.io/badge/license-AGPL--3.0-green">
 </p>
@@ -98,6 +98,17 @@ cd paperlift
 ```
 
 Your browser opens at `http://127.0.0.1:8765`. Drop PDFs, pick formats, done.
+
+### Or use it in the browser
+
+Open the hosted site (no install, nothing uploaded; the engine runs in your tab). Chrome and
+Edge can mount a folder so your files persist. To build or preview it locally:
+
+```bash
+python3 scripts/build_web.py && python3 -m http.server -d web 8000
+```
+
+Releases with per-OS zips are on the [Releases page](../../releases).
 
 ### Everything stays in the folder
 
@@ -205,7 +216,8 @@ re-extract.
   need manual touch-up. Tables inside scanned pages become plain text.
 - The exam-paper profile targets one export layout. Other exam formats fall
   back to the Document profile; contributions of new profiles are welcome.
-- No Windows launcher yet. The `pip`/`uvx` install route works there.
+- The Windows launcher (`Start Paperlift.bat`) has had less testing than the macOS and Linux ones. Please report problems.
+- The browser version is capped at 5 files, 15 MB and 30 pages each, and has no OCR.
 
 ## Contributing
 

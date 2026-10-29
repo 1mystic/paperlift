@@ -14,6 +14,13 @@
   --sans:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,"Helvetica Neue",sans-serif;
   --ease:cubic-bezier(.2,.7,.2,1);
 }
+/* thin, minimal scrollbars */
+*{scrollbar-width:thin;scrollbar-color:#3a3a40 transparent}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#3a3a40;border-radius:6px}
+::-webkit-scrollbar-thumb:hover{background:#55555c}
+::-webkit-scrollbar-corner{background:transparent}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit;color:inherit}
@@ -392,6 +399,7 @@ pre.cli{background:var(--panel);border:1px solid var(--line);border-radius:12px;
 <div class="ctx" id="ctx"></div>
 
 <script>
+const PL_BASE = window.PL_BASE || '';
 const S = {files:[], settings:{limits:{}}, view:'home', tab:'all', stem:null, pending:[], uploading:false, sub:'preview', pendingN:0, ocr:false};
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -563,7 +571,7 @@ function detailView(){
   const vt = [['preview','Preview','eye'],['markdown','Markdown source','code']].concat(f.audit && f.audit.verdict ? [['audit','Fidelity audit','shield']] : []).map(([k,l,i])=>`<button class="chip ${S.sub===k?'on':''}" onclick="S.sub='${k}';render(true)">${ic(i,'sm')}${l}</button>`).join('');
   const labels = {md_zip:['Markdown + images','.zip'], md:['Markdown only','.md'], docx:['Word document','.docx'], pdf:['PDF','.pdf'], json:['Structured JSON','.json'], audit_pdf:['Audit overlay','.pdf']};
   const dls = Object.entries(labels).filter(([k])=>o.files[k]).map(([k,[l,ext]])=>`<a href="${o.files[k]}?dl=1">${ic('dl')}${l}<span>${ext}</span></a>`).join('')
-     + `<a href="/api/zip?stem=${encodeURIComponent(f.stem)}">${ic('dl')}Everything<span>.zip</span></a>`;
+     + `<a href="${PL_BASE}/api/zip?stem=${encodeURIComponent(f.stem)}">${ic('dl')}Everything<span>.zip</span></a>`;
   const warns = (f.warnings||[]).length ? `<h3>Check these</h3><div class="warnbox">${ic('alert','sm')}<div>${f.warnings.map(esc).join('<br>')}</div></div>` : '';
   const tg = (k,l,d,def=true) => { const on = op[k]===undefined ? def : !!op[k]; return `<div class="tog ${on?'on':''}" data-k="${k}" onclick="this.classList.toggle('on')" role="switch" aria-checked="${on}"><span>${l}${d?`<small>${d}</small>`:''}</span><span class="sw"></span></div>` };
   let panel;
@@ -637,7 +645,7 @@ async function loadAudit(){
     ${drops?`<div class="asec">Removed on purpose</div><div class="drops">${drops}</div>`:''}
     ${o.files.audit_pdf?`<div class="asec">Source pages, annotated</div>
       <div class="legend"><span><i style="background:#29a05c80"></i>kept and found</span><span><i style="background:#ee9e1a"></i>partly found</span><span><i style="background:#e62e26"></i>not found</span><span><i style="background:#73738088"></i>removed on purpose</span><span><i style="border:1.5px dashed #5a4de6"></i>out of order</span></div>
-      <div class="pages">${Array.from({length: Number((f.meta||{}).pages)||Object.keys(a.pages||{}).length||1}, (_,k)=>`<div class="pagecard" id="pg-${k+1}"><img loading="lazy" alt="Page ${k+1}, annotated" src="/api/audit-page?stem=${encodeURIComponent(f.stem)}&n=${k+1}&t=${Date.now()}"><span>page ${k+1}</span></div>`).join('')}</div>
+      <div class="pages">${Array.from({length: Number((f.meta||{}).pages)||Object.keys(a.pages||{}).length||1}, (_,k)=>`<div class="pagecard" id="pg-${k+1}"><img loading="lazy" alt="Page ${k+1}, annotated" src="${PL_BASE}/api/audit-page?stem=${encodeURIComponent(f.stem)}&n=${k+1}&t=${Date.now()}"><span>page ${k+1}</span></div>`).join('')}</div>
       <p class="meta" style="margin-top:10px"><a href="${o.files.audit_pdf}?dl=1" style="color:var(--mute)">Download the annotated PDF</a></p>`:''}`;
 }
 function jumpPage(n){

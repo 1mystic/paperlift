@@ -6,15 +6,33 @@ from typing import Optional
 
 DEFAULT_LIMITS = {"max_files": 10, "max_mb": 50, "max_pages": 50}
 
+# Hosting can set hard ceilings (the browser build does) that settings cannot raise.
+_CAP_ENV = {"max_files": "PAPERLIFT_CAP_FILES", "max_mb": "PAPERLIFT_CAP_MB", "max_pages": "PAPERLIFT_CAP_PAGES"}
+
+
+def _caps() -> dict:
+    caps = {}
+    for k, env in _CAP_ENV.items():
+        try:
+            v = int(os.environ.get(env, "0"))
+        except ValueError:
+            v = 0
+        if v > 0:
+            caps[k] = v
+    return caps
+
 
 def clean_limits(d: Optional[dict]) -> dict:
-    out = dict(DEFAULT_LIMITS)
+    caps = _caps()
+    out = {k: min(v, caps[k]) if k in caps else v for k, v in DEFAULT_LIMITS.items()}
     for k, v in (d or {}).items():
         if k in out:
             try:
                 out[k] = max(0, int(v))          # 0 = no limit
             except (TypeError, ValueError):
                 pass
+    for k, c in caps.items():
+        out[k] = min(out[k] or c, c)
     return out
 
 

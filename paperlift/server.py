@@ -54,7 +54,7 @@ DEFAULT_SETTINGS = {
     "split": True, "renumber": True, "marks": True, "qtype_hint": True, "sections": "auto",
     "tables": True, "vector_figures": True, "page_markers": False, "ocr": "auto",
     "audit": True, "audit_overlay": True,
-    "limits": dict(DEFAULT_LIMITS),
+    "limits": clean_limits(None),
 }
 
 
@@ -88,7 +88,9 @@ class Jobs:
         self.q: "queue.Queue[str]" = queue.Queue()
         self.state = {}
         self.opts = {}
-        threading.Thread(target=self._worker, daemon=True, name="paperlift-worker").start()
+        self.hook = None                                   # optional callback(name, cur, total) for live progress
+        if not os.environ.get("PAPERLIFT_NO_THREAD"):      # the browser build has no threads and pumps run_next()
+            threading.Thread(target=self._worker, daemon=True, name="paperlift-worker").start()
 
     def enqueue(self, name: str, opts: dict) -> bool:
         with self.lock:
@@ -117,47 +119,64 @@ class Jobs:
             with self.lock:
                 if name in self.state:
                     self.state[name]["progress"] = [cur, total]
+            if self.hook:
+                self.hook(name, cur, total)
         return cb
 
     def _worker(self):
+        while True:
+            self._run(self.q.get())
+
+    def run_next(self):
+        """Run one queued file synchronously. Returns its name, or None when the queue is empty."""
+        while True:
+            try:
+                name = self.q.get_nowait()
+            except queue.Empty:
+                return None
+            if self.state.get(name, {}).get("status") == "queued":
+                self._run(name)
+                return name
+
+    def _run(self, name):
         from .pipeline import convert
         try:
             import pymupdf as fitz
         except Exception:
             fitz = None
-        while True:
-            name = self.q.get()
+        with self.lock:
+            if self.state.get(name, {}).get("status") != "queued":
+                return
+            self.state[name].update(status="processing", started=time.time(), progress=[0, 0])
+            opts = dict(self.opts.get(name, {}))
+        if self.hook:
+            self.hook(name, 0, 0)
+        try:
+            src = os.path.join(INBOX, name)
+            limits = clean_limits(opts.pop("limits", None))
+            problem = check_pdf(src, limits)
+            if problem:
+                raise ValueError(problem)
+            fmts = tuple(opts.pop("formats", DEFAULT_SETTINGS["formats"]))
+            summary = convert(src, OUTPUT, opts, formats=fmts, progress=self._progress(name))
+            json.dump(dict(opts, formats=list(fmts), mode=summary.get("mode", "auto")),
+                      open(os.path.join(OUTPUT, stem_of(name), "_options.json"), "w"))
             with self.lock:
-                if self.state.get(name, {}).get("status") != "queued":
-                    continue
-                self.state[name].update(status="processing", started=time.time(), progress=[0, 0])
-                opts = dict(self.opts.get(name, {}))
-            try:
-                src = os.path.join(INBOX, name)
-                limits = clean_limits(opts.pop("limits", None))
-                problem = check_pdf(src, limits)
-                if problem:
-                    raise ValueError(problem)
-                fmts = tuple(opts.pop("formats", DEFAULT_SETTINGS["formats"]))
-                summary = convert(src, OUTPUT, opts, formats=fmts, progress=self._progress(name))
-                json.dump(dict(opts, formats=list(fmts), mode=summary.get("mode", "auto")),
-                          open(os.path.join(OUTPUT, stem_of(name), "_options.json"), "w"))
-                with self.lock:
-                    self.state[name].update(status="done", finished=time.time())
-            except Exception as e:  # the queue survives any single bad file
-                if not isinstance(e, ValueError):
-                    traceback.print_exc()
-                with self.lock:
-                    self.state[name].update(status="error", error=str(e) if isinstance(e, ValueError)
-                                            else f"{type(e).__name__}: {e}", finished=time.time())
-            finally:
-                if fitz is not None:
-                    try:
-                        fitz.TOOLS.store_shrink(100)       # drop MuPDF caches between files
-                    except Exception:
-                        pass
-                gc.collect()
-                time.sleep(0.05)
+                self.state[name].update(status="done", finished=time.time())
+        except Exception as e:  # the queue survives any single bad file
+            if not isinstance(e, ValueError):
+                traceback.print_exc()
+            with self.lock:
+                self.state[name].update(status="error", error=str(e) if isinstance(e, ValueError)
+                                        else f"{type(e).__name__}: {e}", finished=time.time())
+        finally:
+            if fitz is not None:
+                try:
+                    fitz.TOOLS.store_shrink(100)       # drop MuPDF caches between files
+                except Exception:
+                    pass
+            gc.collect()
+            time.sleep(0.05)
 
 
 JOBS = Jobs()

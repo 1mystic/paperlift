@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0
+- **Run it in the browser** (new): the full engine runs client-side on Pyodide, so there is nothing to
+  install and files never leave the device. Hosted as a static site (GitHub Pages) from `web/`.
+  - Sized for quick jobs: 5 files per batch, 15 MB and 30 pages per file (hard caps in the web build).
+  - Chrome and Edge can mount a local folder (File System Access API) so files persist on disk.
+  - Build with `python3 scripts/build_web.py`.
+- **Landing page** with web-or-desktop choice and Windows, macOS and Linux download instructions.
+- **Windows launcher**: `Start Paperlift.bat` (uses `paperlift.ps1`; everything stays in `.runtime`).
+- **File manager**: folders, drag and drop, context menus, rename, bulk delete, zip export in chosen formats.
+- Home page groups files into waiting, extracting and extracted.
+- Releases: tagging `v*` builds per-OS zips and publishes a GitHub release.
+
 ## 0.3.0 — 2026-10-23
 - **Fidelity audit** (new): reference-free verification of every extraction.
   - Accounts for every source word and image: it is either kept and found in

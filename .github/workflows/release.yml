@@ -1,0 +1,26 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package per OS
+        run: |
+          mkdir dist
+          common=(':(exclude)web' ':(exclude)scripts' ':(exclude).github' ':(exclude)bench' ':(exclude)tests' ':(exclude)docs/RESEARCH.md')
+          git archive --format=zip --prefix=paperlift/ -o dist/paperlift-windows.zip HEAD -- . "${common[@]}" ':(exclude)Start Paperlift.command' ':(exclude)start-linux.sh' ':(exclude)paperlift.sh'
+          git archive --format=zip --prefix=paperlift/ -o dist/paperlift-macos.zip   HEAD -- . "${common[@]}" ':(exclude)Start Paperlift.bat' ':(exclude)paperlift.ps1' ':(exclude)start-linux.sh'
+          git archive --format=zip --prefix=paperlift/ -o dist/paperlift-linux.zip   HEAD -- . "${common[@]}" ':(exclude)Start Paperlift.bat' ':(exclude)paperlift.ps1' ':(exclude)Start Paperlift.command'
+          ls -la dist
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --title "Paperlift ${GITHUB_REF_NAME#v}" --generate-notes
