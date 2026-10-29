@@ -123,6 +123,51 @@ h1.big{font:400 58px/1.05 var(--serif);letter-spacing:-.02em;text-align:center;m
 .progress{height:2px;background:var(--line);border-radius:2px;overflow:hidden;margin:12px 4px 0;display:none}
 .progress>div{height:100%;background:var(--accent);width:0;transition:width .2s}
 
+
+/* ---------- file manager ---------- */
+.fm{display:grid;grid-template-columns:220px 1fr;height:100vh}
+.fm-side{border-right:1px solid #161618;padding:18px 10px;overflow:auto}
+.fm-side h3{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 8px 10px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.fm-side h3 button{background:none;border:0;color:var(--mute);padding:2px;border-radius:6px;display:grid}
+.fm-side h3 button:hover{color:var(--text);background:var(--panel)}
+.fld{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;border:1px solid transparent;color:var(--text);transition:background .15s}
+.fld:hover{background:var(--panel)}
+.fld.on{background:var(--panel2)}
+.fld.over{border-color:var(--accent);background:#ff5a4e14}
+.fld svg{color:var(--mute)}
+.fld span.nm2{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fld .n{font-size:11px;color:var(--dim)}
+.fld .fa{display:none;gap:2px}
+.fld:hover .fa{display:flex}.fld:hover .n{display:none}
+.fm-main{display:flex;flex-direction:column;min-width:0;height:100vh}
+.fm-bar{display:flex;gap:8px;align-items:center;padding:14px 20px;border-bottom:1px solid #161618;flex-wrap:wrap}
+.fm-bar h2{font:400 22px var(--serif);margin:0 10px 0 0}
+.fm-bar input[type=search]{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;outline:none;width:200px}
+.fm-bar input[type=search]:focus{border-color:#66666e}
+.fm-bar select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 8px}
+.btn{display:inline-flex;gap:7px;align-items:center;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:6px 11px;font-size:13px;transition:.15s;color:var(--text)}
+.btn:hover:not(:disabled){background:var(--panel3);border-color:#55555c}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.pri{background:#fff;color:#111;border-color:#fff;font-weight:600}
+.btn.pri:hover:not(:disabled){background:#ececec}
+.btn.danger:hover:not(:disabled){color:#ff8a80;border-color:var(--accent-d)}
+.fm-sel{display:flex;gap:8px;align-items:center;padding:8px 20px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;min-height:46px}
+.fm-sel .cnt{color:var(--mute);margin-right:6px}
+.fm-list{overflow:auto;flex:1;padding:6px 12px 40px}
+.fr{display:grid;grid-template-columns:28px 1fr 130px 80px 110px 70px;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;border:1px solid transparent;cursor:default}
+.fr.h{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.06em;position:sticky;top:0;background:var(--bg);z-index:1}
+.fr:not(.h):hover{background:var(--panel);border-color:var(--line)}
+.fr.sel{background:var(--panel2);border-color:var(--line2)}
+.fr .nm{font-weight:500;cursor:pointer}.fr .nm:hover{text-decoration:underline}
+.fr .c{color:var(--mute);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fr input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px}
+.fr .rowacts{display:flex;gap:4px;opacity:0}.fr:hover .rowacts{opacity:1}
+.modal{position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:50}
+.mbox{background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:20px;width:min(440px,92vw)}
+.mbox h2{font:400 22px var(--serif);margin:0 0 4px}
+.mbox p{color:var(--mute);margin:0 0 14px;font-size:13px}
+.mbox .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:14px 0 6px;font-weight:600}
+
 /* ---------- detail ---------- */
 .detail{display:grid;grid-template-columns:1fr 340px;height:100vh}
 .prevwrap{overflow:hidden;display:flex;flex-direction:column;border-right:1px solid #161618}
@@ -233,6 +278,8 @@ pre.cli{background:var(--panel);border:1px solid var(--line);border-radius:12px;
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
+    <symbol id="i-files" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M7 12h10"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="i-library" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M2 20h20"/></symbol>
     <symbol id="i-queue" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18.5" cy="16.5" r="2.5"/></symbol>
@@ -272,6 +319,7 @@ pre.cli{background:var(--panel);border:1px solid var(--line);border-radius:12px;
     <button class="newbtn" onclick="go('home');pick()"><svg class="i"><use href="#i-plus"/></svg>New extraction</button>
     <nav class="nav">
       <button id="nav-home" onclick="go('home');setTab('all')"><svg class="i"><use href="#i-library"/></svg>Library<span class="count" id="cnt">0</span></button>
+      <button id="nav-files" onclick="go('files')"><svg class="i"><use href="#i-files"/></svg>File manager</button>
       <button id="nav-queue" onclick="go('home');setTab('queue')"><svg class="i"><use href="#i-queue"/></svg>Queue<span class="count" id="qcnt">0</span></button>
       <button id="nav-settings" onclick="go('settings')"><svg class="i"><use href="#i-gear"/></svg>Settings &amp; limits</button>
     </nav>
@@ -303,7 +351,7 @@ async function api(path, body){
 }
 async function refresh(){
   let d; try{ d = await api('/api/state') }catch(e){ $('#ver').textContent='Server stopped'; return }
-  S.files=d.files; S.settings=d.settings; S.pendingN=d.pending; S.ocr=d.ocr;
+  S.files=d.files; S.library=d.library; S.settings=d.settings; S.pendingN=d.pending; S.ocr=d.ocr;
   $('#ver').textContent = `v${d.version} · running locally`;
   $('#cnt').textContent = S.files.length;
   const q=$('#qcnt'); q.textContent=d.pending; q.classList.toggle('live', d.pending>0);
@@ -584,13 +632,91 @@ async function saveLimits(){
   await saveSettings({limits:lim}); toast('Limits saved');
 }
 
+/* ---------------- file manager ---------------- */
+const FM = {folder:'*', sel:new Set(), q:'', sort:'date', dlOpen:false, dlFmts:['md','docx','pdf'], dlSource:false, dlLayout:'folders', dlScope:'sel', vis:[], moveOpen:false};
+const DL_KINDS = [['md','Markdown','.md'],['md_zip','Markdown + images','.zip'],['docx','Word','.docx'],['pdf','PDF','.pdf'],['json','JSON','.json'],['html','HTML','.html'],['audit_pdf','Audit overlay','.pdf']];
+const lib = () => S.library || {folders:[], assign:{}};
+function fmVisible(){
+  const L2=lib(), q=FM.q.toLowerCase();
+  let v = S.files.filter(f => FM.folder==='*' || (FM.folder==='' ? !L2.assign[f.name] : L2.assign[f.name]===FM.folder));
+  if(q) v = v.filter(f => f.name.toLowerCase().includes(q));
+  const by = {name:(a,b)=>a.name.localeCompare(b.name), size:(a,b)=>b.size-a.size, status:(a,b)=>a.status.localeCompare(b.status), date:()=>0}[FM.sort];
+  return [...v].sort(by);
+}
+function filesView(){
+  const L2=lib(), vis=FM.vis=fmVisible();
+  const cnt = k => S.files.filter(f => k==='*' ? true : k==='' ? !L2.assign[f.name] : L2.assign[f.name]===k).length;
+  const fl = (k,label,icon,acts='') => `<div class="fld ${FM.folder===k?'on':''}" onclick="FM.folder=${JSON.stringify(k).replace(/"/g,'&quot;')};render(true)" ${k!=='*'?`ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="fmDrop(event,${JSON.stringify(k).replace(/"/g,'&quot;')})"`:''}>${ic(icon,'sm')}<span class="nm2">${esc(label)}</span><span class="n">${cnt(k)}</span>${acts}</div>`;
+  const folders = L2.folders.map((f,i)=>fl(f,f,'folder',`<span class="fa"><button class="mini" title="Rename" onclick="event.stopPropagation();fmRenameFolder(${i})">${ic('edit','sm')}</button><button class="mini danger" title="Delete folder (files are kept)" onclick="event.stopPropagation();fmDeleteFolder(${i})">${ic('trash','sm')}</button></span>`)).join('');
+  const sel=[...FM.sel].filter(n=>S.files.some(f=>f.name===n)); const nsel=sel.length;
+  const allOn = vis.length && vis.every(f=>FM.sel.has(f.name));
+  const title = FM.folder==='*'?'All files':FM.folder===''?'Unfiled':FM.folder;
+  const rows = vis.map((f,i)=>{
+    const fo = L2.assign[f.name]; const st = ({new:'Not extracted',queued:'Queued',processing:'Extracting',error:'Failed',done:'Ready'})[f.status]||f.status;
+    return `<div class="fr ${FM.sel.has(f.name)?'sel':''}" draggable="true" ondragstart="fmDrag(event,${i})">
+      <input type="checkbox" ${FM.sel.has(f.name)?'checked':''} onchange="fmToggle(${i})">
+      <span class="nm" onclick="fmOpen(${i})" title="${esc(f.name)}">${esc(f.name)}</span>
+      <span class="c">${fo?ic('folder','sm')+' '+esc(fo):'—'}</span><span class="c">${fmtSize(f.size)}</span>
+      <span><span class="badge ${f.status}">${st}</span></span>
+      <span class="rowacts"><button class="mini" title="Rename" onclick="fmRename(${i})">${ic('edit','sm')}</button><button class="mini danger" title="Delete" onclick="fmDelete([${JSON.stringify(f.name).replace(/"/g,'&quot;')}])">${ic('trash','sm')}</button></span></div>`}).join('');
+  const dis = nsel?'':'disabled';
+  const dl = FM.dlOpen ? `<div class="modal" onclick="if(event.target===this){FM.dlOpen=false;render(true)}"><div class="mbox"><h2>Download</h2><p>Pick what goes into the zip.</p>
+    <div class="lbl">Files</div><div class="row"><button class="chip ${FM.dlScope==='sel'?'on':''}" ${nsel?'':'disabled'} onclick="FM.dlScope='sel';render(true)">Selected (${nsel})</button><button class="chip ${FM.dlScope==='view'?'on':''}" onclick="FM.dlScope='view';render(true)">This view (${vis.length})</button><button class="chip ${FM.dlScope==='all'?'on':''}" onclick="FM.dlScope='all';render(true)">Everything (${S.files.length})</button></div>
+    <div class="lbl">Formats</div><div class="row">${DL_KINDS.map(([k,l,e])=>`<button class="chip ${FM.dlFmts.includes(k)?'on':''}" onclick="fmFmt('${k}')">${l} <small>${e}</small></button>`).join('')}<button class="chip ${FM.dlSource?'on':''}" onclick="FM.dlSource=!FM.dlSource;render(true)">Original PDF</button></div>
+    <div class="lbl">Layout</div><div class="row"><button class="chip ${FM.dlLayout==='folders'?'on':''}" onclick="FM.dlLayout='folders';render(true)">Keep my folders</button><button class="chip ${FM.dlLayout==='flat'?'on':''}" onclick="FM.dlLayout='flat';render(true)">One flat folder</button></div>
+    <div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn" onclick="FM.dlOpen=false;render(true)">Cancel</button><button class="btn pri" onclick="fmDownload()">${ic('dl','sm')}Download .zip</button></div></div></div>` : '';
+  return `<div class="fm">
+    <div class="fm-side"><h3>Library</h3>${fl('*','All files','library')}${fl('','Unfiled','inbox')}<h3 style="margin-top:20px">Folders<button title="New folder" onclick="fmNewFolder()">${ic('plus','sm')}</button></h3>${folders||'<div class="meta" style="padding:4px 10px;color:var(--dim)">No folders yet</div>'}</div>
+    <div class="fm-main">
+      <div class="fm-bar"><h2>${esc(title)}</h2><input type="search" id="fm-q" placeholder="Search files" value="${esc(FM.q)}" oninput="FM.q=this.value;render(true);const e=$('#fm-q');e.focus();e.setSelectionRange(99,99)">
+        <select onchange="FM.sort=this.value;render(true)">${[['date','Newest'],['name','Name'],['size','Size'],['status','Status']].map(([k,l])=>`<option value="${k}" ${FM.sort===k?'selected':''}>${l}</option>`).join('')}</select>
+        <span style="flex:1"></span><button class="btn" onclick="fmNewFolder()">${ic('plus','sm')}New folder</button><button class="btn" onclick="go('home');pick()">${ic('up','sm')}Upload</button><button class="btn pri" onclick="FM.dlScope=${nsel}?'sel':'all';FM.dlOpen=true;render(true)">${ic('dl','sm')}Download…</button></div>
+      <div class="fm-sel"><span class="cnt">${nsel?nsel+' selected':'Select files to act on them'}</span>
+        <button class="btn" ${dis} onclick="fmMove()">${ic('folder','sm')}Move to…</button>
+        <button class="btn" ${dis} onclick="fmExtract()">${ic('play','sm')}Extract</button>
+        <button class="btn" ${nsel===1?'':'disabled'} onclick="fmRename(-1)">${ic('edit','sm')}Rename</button>
+        <button class="btn danger" ${dis} onclick="fmDelete([...FM.sel])">${ic('trash','sm')}Delete</button>
+        ${nsel?`<button class="btn" onclick="FM.sel.clear();render(true)">Clear</button>`:''}</div>
+      <div class="fm-list"><div class="fr h"><input type="checkbox" ${allOn?'checked':''} onchange="fmAll(this.checked)" title="Select all in view"><span>Name</span><span>Folder</span><span>Size</span><span>Status</span><span></span></div>
+      ${rows||`<div class="empty">${ic('inbox')}No files here.</div>`}</div>
+    </div>${dl}</div>`;
+}
+const fmSelNames = () => [...FM.sel].filter(n=>S.files.some(f=>f.name===n));
+function fmToggle(i){ const n=FM.vis[i].name; FM.sel.has(n)?FM.sel.delete(n):FM.sel.add(n); render(true) }
+function fmAll(on){ FM.vis.forEach(f=>on?FM.sel.add(f.name):FM.sel.delete(f.name)); render(true) }
+function fmOpen(i){ const f=FM.vis[i]; if(f.status==='done') go('paper',f.stem); else if(f.status==='new'||f.status==='error') convert([f.name]) }
+function fmFmt(k){ FM.dlFmts = FM.dlFmts.includes(k)?FM.dlFmts.filter(x=>x!==k):[...FM.dlFmts,k]; render(true) }
+function fmDrag(e,i){ const n=FM.vis[i].name; const names = FM.sel.has(n)?fmSelNames():[n]; e.dataTransfer.setData('text/plain', JSON.stringify(names)) }
+async function fmDrop(e,folder){ e.preventDefault(); let names=[]; try{ names=JSON.parse(e.dataTransfer.getData('text/plain')) }catch(_){ return } if(names.length) fmDoMove(names,folder) }
+async function fmDoMove(names,folder){ const r=await api('/api/move',{names,folder}); S.library=r; toast(`Moved ${names.length} file${names.length>1?'s':''}${folder?' to '+folder:' out of folders'}`); render(true) }
+async function fmNewFolder(){ const n=prompt('New folder name'); if(!n||!n.trim()) return; S.library=await api('/api/folder',{action:'create',name:n}); render(true) }
+async function fmRenameFolder(i){ const old=lib().folders[i]; const n=prompt('Rename folder',old); if(!n||!n.trim()||n===old) return; S.library=await api('/api/folder',{action:'rename',name:old,to:n}); if(FM.folder===old) FM.folder=n.trim(); render(true) }
+async function fmDeleteFolder(i){ const f=lib().folders[i]; if(!confirm(`Delete folder “${f}”? Its files are kept and become unfiled.`)) return; S.library=await api('/api/folder',{action:'delete',name:f}); if(FM.folder===f) FM.folder='*'; render(true) }
+async function fmMove(){ const names=fmSelNames(); const opts=lib().folders; const t=prompt('Move to folder (type a name; new names create a folder; empty = unfiled).\nExisting: '+(opts.join(', ')||'none'), FM.folder&&FM.folder!=='*'?FM.folder:''); if(t===null) return; fmDoMove(names,t.trim()) }
+async function fmRename(i){
+  const f = i<0 ? S.files.find(x=>x.name===fmSelNames()[0]) : FM.vis[i]; if(!f) return;
+  const n=prompt('Rename file', f.name); if(!n||n.trim()===f.name) return;
+  const r=await api('/api/rename',{name:f.name,to:n.trim()}); if(r.error) return toast(r.error,true);
+  FM.sel.delete(f.name); toast('Renamed'); refresh();
+}
+async function fmDelete(names){ if(!names.length||!confirm(`Delete ${names.length} file${names.length>1?'s':''} and their outputs? This cannot be undone.`)) return;
+  const r=await api('/api/delete-many',{names}); names.forEach(n=>FM.sel.delete(n)); if(r.busy&&r.busy.length) toast(`${r.busy.length} skipped (being processed)`,true); else toast(`Deleted ${r.deleted.length}`); refresh() }
+function fmExtract(){ const names=fmSelNames(); if(names.length) convert(names) }
+function fmDownload(){
+  const names = FM.dlScope==='sel'?fmSelNames():FM.dlScope==='view'?FM.vis.map(f=>f.name):S.files.map(f=>f.name);
+  if(!names.length) return toast('No files to download',true);
+  if(!FM.dlFmts.length && !FM.dlSource) return toast('Choose at least one format',true);
+  const u=`/api/export?names=${encodeURIComponent(names.join('\n'))}&formats=${FM.dlFmts.join(',')}&source=${FM.dlSource?1:0}&layout=${FM.dlLayout}`;
+  FM.dlOpen=false; render(true); location.href=u; toast('Preparing zip…');
+}
+
 /* ---------------- render ---------------- */
 let lastKey='';
 function render(force){
-  ['home','settings'].forEach(v=>$('#nav-'+v).classList.toggle('on', S.view===v && !(v==='home'&&S.tab==='queue')));
+  ['home','files','settings'].forEach(v=>$('#nav-'+v).classList.toggle('on', S.view===v && !(v==='home'&&S.tab==='queue')));
   $('#nav-queue').classList.toggle('on', S.view==='home' && S.tab==='queue');
-  if(S.view==='settings' && !force && document.activeElement && document.activeElement.tagName==='INPUT') return;
-  const html = S.view==='paper' ? detailView() : S.view==='settings' ? settingsView() : homeView();
+  if((S.view==='settings'||S.view==='files') && !force && document.activeElement && document.activeElement.tagName==='INPUT') return;
+  const html = S.view==='paper' ? detailView() : S.view==='settings' ? settingsView() : S.view==='files' ? filesView() : homeView();
   const key = S.view==='paper' ? JSON.stringify([S.stem,S.outIdx,S.sub,(S.files.find(x=>x.stem===S.stem)||{}).status]) : html;
   if(!force && key===lastKey) return;
   lastKey=key;

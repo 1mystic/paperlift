@@ -46,6 +46,7 @@ ROOT = data_home()
 INBOX = os.path.join(ROOT, "inbox")
 OUTPUT = os.path.join(ROOT, "output")
 SETTINGS = os.path.join(ROOT, "settings.json")
+LIBRARY = os.path.join(ROOT, "library.json")
 
 DEFAULT_SETTINGS = {
     "formats": ["md", "docx", "pdf", "json"],
@@ -160,6 +161,91 @@ class Jobs:
 
 
 JOBS = Jobs()
+
+# --------------------------------------------------------------------------
+# File manager: virtual folders (stored in library.json; files never move on disk)
+# --------------------------------------------------------------------------
+LIB_LOCK = threading.Lock()
+EXPORT_KINDS = {"md": "md", "docx": "docx", "pdf": "pdf", "json": "json", "html": "html",
+                "md_zip": "md_zip", "audit_pdf": "audit_pdf"}
+
+
+def load_library() -> dict:
+    try:
+        d = json.load(open(LIBRARY))
+    except Exception:
+        d = {}
+    folders = sorted({str(f) for f in d.get("folders", []) if f})
+    assign = {k: v for k, v in (d.get("assign") or {}).items() if v in folders}
+    return {"folders": folders, "assign": assign}
+
+
+def save_library(lib: dict):
+    tmp = LIBRARY + ".tmp"
+    json.dump(lib, open(tmp, "w"), indent=1)
+    os.replace(tmp, LIBRARY)
+
+
+def clean_folder(name) -> str:
+    return re.sub(r"[\\/:*?\"<>|]+", "_", str(name or "")).strip(" .")[:60]
+
+
+def rename_pdf(old: str, new: str):
+    """Rename a source PDF, its output folder and the paths recorded in its summary."""
+    os_, ns = stem_of(old), stem_of(new)
+    os.replace(os.path.join(INBOX, old), os.path.join(INBOX, new))
+    od, nd = os.path.join(OUTPUT, os_), os.path.join(OUTPUT, ns)
+    if os.path.isdir(od):
+        os.replace(od, nd)
+        for base, _, files in os.walk(nd):
+            for f in files:
+                if f.startswith(os_):
+                    os.replace(os.path.join(base, f), os.path.join(base, ns + f[len(os_):]))
+        for meta in ("_summary.json", "_audit.json"):
+            mp = os.path.join(nd, meta)
+            if os.path.exists(mp):
+                txt = open(mp).read().replace(os_, ns)
+                open(mp, "w").write(txt)
+
+
+def build_export(names, kinds, layout, include_source):
+    """Zip the chosen formats for the chosen files into a temp file; returns its path."""
+    lib = load_library()
+    zp = os.path.join(OUTPUT, f".export_{int(time.time() * 1000)}.zip")
+    used = set()
+    with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED) as z:
+        for nm in names:
+            nm = safe_name(nm)
+            stem = stem_of(nm)
+            folder = lib["assign"].get(nm, "") if layout == "folders" else ""
+            sp = os.path.join(OUTPUT, stem, "_summary.json")
+            pairs = []
+            if include_source and os.path.exists(os.path.join(INBOX, nm)):
+                pairs.append(os.path.join(INBOX, nm))
+            if os.path.exists(sp):
+                try:
+                    outs = json.load(open(sp)).get("outputs", [])
+                except Exception:
+                    outs = []
+                for o in outs:
+                    for k in kinds:
+                        fp = o.get("files", {}).get(k)
+                        if fp and os.path.isfile(fp) and self_under_output(fp):
+                            pairs.append(fp)
+            for fp in pairs:
+                arc = "/".join(x for x in (folder, os.path.basename(fp)) if x)
+                base, ext = os.path.splitext(arc)
+                i = 2
+                while arc in used:
+                    arc, i = f"{base} ({i}){ext}", i + 1
+                used.add(arc)
+                z.write(fp, arc)
+    return zp, len(used)
+
+
+def self_under_output(fp):
+    return os.path.realpath(fp).startswith(os.path.realpath(OUTPUT) + os.sep)
+
 
 
 def file_list():
@@ -290,7 +376,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._file(self._under(STATIC, path[len("/static/"):]))
         if path == "/api/state":
             return self._json({"files": file_list(), "pending": JOBS.pending(), "settings": load_settings(),
-                               "version": VERSION, "root": ROOT, "ocr": ocr_status()})
+                               "version": VERSION, "root": ROOT, "ocr": ocr_status(),
+                               "library": load_library()})
         if path.startswith("/out/"):
             p = self._under(OUTPUT, path[5:])
             return self._file(p, os.path.basename(p) if p and qs.get("dl") else None)
@@ -321,6 +408,21 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(data)
+            return
+        if path == "/api/export":
+            names = [n for n in qs.get("names", [""])[0].split("\n") if n]
+            kinds = [k for k in qs.get("formats", [""])[0].split(",") if k in EXPORT_KINDS]
+            layout = "folders" if qs.get("layout", ["flat"])[0] == "folders" else "flat"
+            source = qs.get("source", ["0"])[0] == "1"
+            if not names or not (kinds or source):
+                return self._json({"error": "nothing selected"}, 400)
+            zp, n = build_export(names, kinds, layout, source)
+            try:
+                if not n:
+                    return self._json({"error": "no matching files for those formats"}, 404)
+                self._file(zp, "paperlift_export.zip")
+            finally:
+                os.remove(zp)
             return
         if path == "/api/zip":
             stem = qs.get("stem", [""])[0]
@@ -402,6 +504,78 @@ class Handler(BaseHTTPRequestHandler):
             if os.path.isdir(d):
                 shutil.rmtree(d)
             return self._json({"ok": True})
+        if u.path == "/api/folder":
+            act, name = body.get("action"), clean_folder(body.get("name"))
+            with LIB_LOCK:
+                lib = load_library()
+                if act == "create" and name:
+                    if name not in lib["folders"]:
+                        lib["folders"].append(name)
+                elif act == "rename" and name and body.get("to") and name in lib["folders"]:
+                    to = clean_folder(body["to"])
+                    if to and to != name:
+                        lib["folders"] = [to if f == name else f for f in lib["folders"]]
+                        lib["assign"] = {k: (to if v == name else v) for k, v in lib["assign"].items()}
+                elif act == "delete" and name in lib["folders"]:
+                    lib["folders"].remove(name)
+                    lib["assign"] = {k: v for k, v in lib["assign"].items() if v != name}
+                else:
+                    return self._json({"error": "bad folder request"}, 400)
+                save_library(lib)
+            return self._json(load_library())
+        if u.path == "/api/move":
+            folder = clean_folder(body.get("folder"))
+            with LIB_LOCK:
+                lib = load_library()
+                if folder and folder not in lib["folders"]:
+                    lib["folders"].append(folder)
+                for nm in body.get("names") or []:
+                    nm = safe_name(nm)
+                    if folder:
+                        lib["assign"][nm] = folder
+                    else:
+                        lib["assign"].pop(nm, None)
+                save_library(lib)
+            return self._json(load_library())
+        if u.path == "/api/rename":
+            old, new = safe_name(body.get("name", "")), safe_name(body.get("to", ""))
+            if not os.path.exists(os.path.join(INBOX, old)):
+                return self._json({"error": "not found"}, 404)
+            if old == new:
+                return self._json({"ok": True, "name": new})
+            if os.path.exists(os.path.join(INBOX, new)) or os.path.exists(os.path.join(OUTPUT, stem_of(new))):
+                return self._json({"error": f"{new} already exists"}, 409)
+            if JOBS.get(old).get("status") in ("queued", "processing"):
+                return self._json({"error": "file is queued or being processed"}, 409)
+            rename_pdf(old, new)
+            with LIB_LOCK, JOBS.lock:
+                JOBS.state.pop(old, None)
+                lib = load_library()
+                if old in lib["assign"]:
+                    lib["assign"][new] = lib["assign"].pop(old)
+                    save_library(lib)
+            return self._json({"ok": True, "name": new})
+        if u.path == "/api/delete-many":
+            deleted, busy = [], []
+            for nm in body.get("names") or []:
+                nm = safe_name(nm)
+                with JOBS.lock:
+                    if JOBS.state.get(nm, {}).get("status") == "processing":
+                        busy.append(nm)
+                        continue
+                    JOBS.state.pop(nm, None)
+                p = os.path.join(INBOX, nm)
+                if os.path.exists(p):
+                    os.remove(p)
+                d = os.path.join(OUTPUT, stem_of(nm))
+                if os.path.isdir(d):
+                    shutil.rmtree(d)
+                deleted.append(nm)
+            with LIB_LOCK:
+                lib = load_library()
+                lib["assign"] = {k: v for k, v in lib["assign"].items() if k not in deleted}
+                save_library(lib)
+            return self._json({"ok": True, "deleted": deleted, "busy": busy})
         if u.path == "/api/settings":
             s = load_settings()
             for k, v in body.items():

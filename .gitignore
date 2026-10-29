@@ -19,3 +19,4 @@ dist/
 Thumbs.db
 # benchmark output
 bench/last_run.json
+library.json
