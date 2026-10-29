@@ -11,16 +11,23 @@
   const boot = document.createElement('div');
   boot.id = 'plboot';
   boot.innerHTML = '<div><svg viewBox="0 0 64 64" width="44" height="44"><rect x="14" y="20" width="26" height="32" rx="5" fill="none" stroke="#8a8a92" stroke-width="3.5"/><rect x="23" y="11" width="27" height="33" rx="5" fill="#fff"/><path d="M36.5 35V21.5M31 27l5.5-5.5L42 27" fill="none" stroke="#ff5a4e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-    '<b>Starting Paperlift</b><p id="plboot-t">Preparing…</p><small>First visit downloads about 30 MB. After that it opens from cache.<br>Your PDFs never leave this device.</small></div>';
+    '<b>Starting Paperlift</b><p id="plboot-t">Preparing…</p><div class="plbar" role="progressbar" aria-valuemin="0" aria-valuemax="100"><i id="plbar-i"></i></div><div id="plbar-n">0%</div><small>First visit downloads about 30 MB. After that it opens from cache.<br>Your PDFs never leave this device.</small></div>';
   const st = document.createElement('style');
   st.textContent = '#plboot{position:fixed;inset:0;background:#0b0b0c;display:grid;place-items:center;z-index:100;text-align:center;color:#ededee;font:14px -apple-system,BlinkMacSystemFont,"Inter",sans-serif}' +
     '#plboot b{display:block;font:400 26px "Iowan Old Style",Palatino,Georgia,serif;margin:14px 0 6px}#plboot p{color:#ff8f86;margin:0 0 14px}#plboot small{color:#6b6b72;line-height:1.6}' +
-    '#plboot.err p{color:#ffb3ab}.plws{margin:10px 8px 0;padding:11px 12px;border:1px solid #2a2a2e;border-radius:12px;background:#141416;font-size:12.5px;color:#9a9aa1;line-height:1.45}' +
+    '#plboot .plbar{width:260px;height:4px;border-radius:4px;background:#2a2a2e;margin:0 auto 8px;overflow:hidden}#plboot .plbar i{display:block;height:100%;width:0;background:#ff5a4e;border-radius:4px;transition:width .25s ease-out}#plbar-n{color:#9a9aa1;font-size:12px;margin-bottom:16px;font-variant-numeric:tabular-nums}#plboot.err .plbar i{background:#6b6b72}#plboot.err p{color:#ffb3ab}.plws{margin:10px 8px 0;padding:11px 12px;border:1px solid #2a2a2e;border-radius:12px;background:#141416;font-size:12.5px;color:#9a9aa1;line-height:1.45}' +
     '.plws b{display:block;color:#ededee;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.plws button{margin-top:8px;width:100%;background:#222226;border:1px solid #3a3a40;border-radius:8px;padding:6px 8px;color:#ededee;cursor:pointer;font:inherit}' +
     '.plws button:hover{background:#2a2a2f}.plws.ok{border-color:#2b5a3d}.plws.ok b{color:#46c27a}';
   document.head.appendChild(st);
   document.addEventListener('DOMContentLoaded', () => { if (!isReady) document.body.appendChild(boot); });
-  const bootText = (t, err) => { const e = $('#plboot-t'); if (e) e.textContent = t; if (err) boot.classList.add('err'); };
+  let pctTarget = 0, pctShown = 0, creepCap = 0;
+  const paintPct = () => { const i = $('#plbar-i'), n = $('#plbar-n'); if (i) i.style.width = pctShown + '%'; if (n) n.textContent = Math.round(pctShown) + '%'; const b = boot.querySelector('.plbar'); if (b) b.setAttribute('aria-valuenow', Math.round(pctShown)); };
+  /* the bar jumps to each stage, then creeps forward so long downloads never look frozen */
+  setInterval(() => { if (!boot.isConnected || boot.classList.contains('err')) return; if (pctShown >= creepCap) return; pctShown = Math.min(creepCap, pctShown + (creepCap - pctShown) * 0.03 + 0.02); paintPct(); }, 200);
+  const bootText = (t, err, pct) => {
+    const e = $('#plboot-t'); if (e) e.textContent = t; if (err) boot.classList.add('err');
+    if (pct != null) { pctTarget = pct; creepCap = pct >= 100 ? 100 : Math.min(99, pct + (pct < 22 ? 17 : pct < 78 ? 50 : 8)); pctShown = Math.max(pctShown, pct); paintPct(); }
+  };
 
   /* ---------- remembered folder (Chrome / Edge) ---------- */
   const idb = () => new Promise((res, rej) => { const r = indexedDB.open('paperlift', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
@@ -42,7 +49,7 @@
     worker.onmessage = (e) => {
       const m = e.data;
       if (m.id) { const w = waiting.get(m.id); if (w) { waiting.delete(m.id); w(m); } return; }
-      if (m.type === 'boot') bootText(m.text);
+      if (m.type === 'boot') bootText(m.text, false, m.pct);
       else if (m.type === 'ready') { isReady = true; boot.remove(); readyRes(m); }
       else if (m.type === 'fatal') { bootText('Could not start the engine: ' + m.text + ' Check your connection and reload.', true); readyRej(new Error(m.text)); }
       else if (m.type === 'job') { busy = true; overlay[m.name] = {status: 'processing', progress: [m.cur, m.total]}; }
@@ -146,7 +153,7 @@
   async function mount(handle) {
     ws = {mounted: !!handle, name: handle ? handle.name : '', pendingHandle: null};
     if (!boot.isConnected) document.body.appendChild(boot);
-    bootText('Opening your folder…');
+    pctShown = pctTarget = 0; bootText('Opening your folder…', false, 0);
     try { await startWorker(handle); } catch (e) { return; }
     paintWorkspace();
     if (window.refresh) window.refresh();

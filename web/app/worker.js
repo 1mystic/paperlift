@@ -4,17 +4,17 @@ importScripts(PYODIDE + 'pyodide.js');
 
 const CAPS = {PAPERLIFT_CAP_FILES: '5', PAPERLIFT_CAP_MB: '15', PAPERLIFT_CAP_PAGES: '30'};
 let py = null, webhost = null, nativefs = null, pumping = false;
-const say = (text) => postMessage({type: 'boot', text});
+const say = (text, pct) => postMessage({type: 'boot', text, pct});
 
 async function boot({dirHandle, base}) {
-  say('Loading Python runtime…');
+  say('Downloading Python runtime…', 3);
   py = await loadPyodide({indexURL: PYODIDE});
-  say('Loading PDF engine…');
+  say('Downloading PDF engine (largest step)…', 22);
   await py.loadPackage(['PyMuPDF', 'pillow', 'lxml', 'micropip', 'typing-extensions']);
-  say('Loading Word export…');
+  say('Adding Word export…', 78);
   await py.runPythonAsync("import micropip\nawait micropip.install('python-docx')");
 
-  say('Loading Paperlift…');
+  say('Loading Paperlift…', 88);
   const manifest = await (await fetch(base + 'py/manifest.json', {cache: 'no-cache'})).json();
   py.FS.mkdirTree('/pkg/paperlift');
   for (const f of manifest.files) {
@@ -29,6 +29,7 @@ async function boot({dirHandle, base}) {
     py.FS.mkdirTree(root);
     nativefs = await py.mountNativeFS(root, dirHandle);
   }
+  say(dirHandle ? 'Opening your folder…' : 'Almost ready…', 96);
   py.FS.mkdirTree(root + '/inbox');
   py.FS.mkdirTree(root + '/output');
 
@@ -48,6 +49,7 @@ webhost.set_progress_hook(plbridge.progress)
 `);
   webhost = py.pyimport('paperlift.webhost');
   if (nativefs) await nativefs.syncfs();
+  say('Ready', 100);
   postMessage({type: 'ready', root, mounted: !!dirHandle});
 }
 
